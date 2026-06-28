@@ -1,0 +1,64 @@
+<!-- Portfolio Component -->
+<section class="portfolio" id="portfolio">
+    <div class="container-fluid px-4 px-lg-5">
+        <h2 class="section-title">Meu Portfólio</h2>
+        <div class="portfolio-grid">
+            @foreach (var project in Projects)
+            {
+                <div class="portfolio-item">
+                    <img src="@project.Image" alt="@project.Title" class="portfolio-image">
+                    <div class="portfolio-overlay">
+                        <h3>@project.Title</h3>
+                        <p>@project.Category</p>
+                    </div>
+                    <div class="portfolio-info">
+                        <h3>@project.Title</h3>
+                        <p>@project.Description</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    private List<PortfolioProject> Projects = new()
+    {
+        new PortfolioProject 
+        { 
+            Title = "Projeto 1", 
+            Category = "Web Design",
+            Description = "Descrição do seu primeiro projeto",
+            Image = "https://via.placeholder.com/400x300?text=Projeto+1"
+        },
+        new PortfolioProject 
+        { 
+            Title = "Projeto 2", 
+            Category = "Aplicação Web",
+            Description = "Descrição do seu segundo projeto",
+            Image = "https://via.placeholder.com/400x300?text=Projeto+2"
+        },
+        new PortfolioProject 
+        { 
+            Title = "Projeto 3", 
+            Category = "Mobile App",
+            Description = "Descrição do seu terceiro projeto",
+            Image = "https://via.placeholder.com/400x300?text=Projeto+3"
+        },
+        new PortfolioProject 
+        { 
+            Title = "Projeto 4", 
+            Category = "Design",
+            Description = "Descrição do seu quarto projeto",
+            Image = "https://via.placeholder.com/400x300?text=Projeto+4"
+        }
+    };
+
+    public class PortfolioProject
+    {
+        public string? Title { get; set; }
+        public string? Category { get; set; }
+        public string? Description { get; set; }
+        public string? Image { get; set; }
+    }
+}

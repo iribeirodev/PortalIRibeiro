@@ -1,0 +1,53 @@
+## ---------------------------------------------------------------------
+## ECOSSISTEMA .NET (Blazor WebAssembly)
+## ---------------------------------------------------------------------
+# Pastas de saída de compilação (Build/Artifacts)
+[Bb]in/
+[Oo]bj/
+[Log]s/
+
+# Arquivos gerados pelo compilador e publicação
+*.deps.json
+*.runtimeconfig.dev.json
+*.publish.htm
+*.pfx
+*.publish.json
+
+# Cache de ferramentas locais e pacotes clonados na estrutura
+.paket/
+.nuget/
+project.lock.json
+project.fragment.lock.json
+
+# Caches específicos do Blazor / ASP.NET
+.modules/
+**/.microsoft.dotnet.internal.web.runtimewebassembly.sdk/
+
+## ---------------------------------------------------------------------
+## JETBRAINS RIDER / INTERFACE DO USUÁRIO
+## ---------------------------------------------------------------------
+# Pasta de configurações específicas da IDE Rider/IntelliJ
+.idea/
+
+# Arquivos de customização de usuário (tamanho de janelas, abas abertas)
+*.sln.iml
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## ---------------------------------------------------------------------
+## SISTEMA OPERACIONAL (Linux)
+## ---------------------------------------------------------------------
+# Arquivos ocultos de metadados do Linux
+.directory
+.Trash-*
+
+## ---------------------------------------------------------------------
+## SEGURANÇA E ARQUIVOS LOCAIS
+## ---------------------------------------------------------------------
+# Configurações locais de inicialização (como portas de dev e variáveis)
+[Ll]aunch[Ss]ettings.json.user
+appsettings.Development.json
+appsettings.Local.json
+.env

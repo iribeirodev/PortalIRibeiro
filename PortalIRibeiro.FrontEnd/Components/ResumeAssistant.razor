@@ -1,0 +1,148 @@
+@using PortalIRibeiro.FrontEnd.Infra.Crosscutting
+@using PortalIRibeiro.FrontEnd.Model
+@using PortalIRibeiro.FrontEnd.Services
+@inject ApiService ApiService
+
+@inject HttpClient Http
+
+<button class="chat-floating-btn" @onclick="ToggleChat" title="Fale com a Iris">
+    <div class="assistant-branding">
+        <img src="images/Iris.png" alt="Iris" class="assistant-avatar" />
+        <span class="assistant-label">Fale com a Iris</span>
+    </div>
+</button>
+
+<div class="chat-window @(isChatOpen ? "open" : "")">
+    <div class="chat-header">
+        <div class="chat-header-title">
+            <div class="assistant-branding-header">
+                <img src="images/Iris.png" alt="Iris" class="assistant-avatar-small" />
+                <h5>Iris</h5>
+            </div>
+            <div class="header-actions">
+                <span class="online-indicator"></span>
+                <span class="online-text">Online</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-body">
+        <div class="messages-container">
+            @foreach (var msg in messages)
+            {
+                <div class="message-row @(msg.IsUser ? "user-row" : "iris-row")">
+                    @if (!msg.IsUser)
+                    {
+                        <img src="images/Iris.png" class="chat-msg-avatar" alt="Iris" />
+                    }
+                    <div class="message-bubble">
+                        @if (msg.IsUser)
+                        {
+                            @msg.Text
+                        }
+                        else
+                        {
+                            @TextUtilities.ConvertMarkdownToHtml(msg.Text)
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (isTyping)
+            {
+                <div class="message-row iris-row">
+                    <img src="images/Iris.png" class="chat-msg-avatar" alt="Iris" />
+                    <div class="message-bubble typing-bubble">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="chat-footer-container">
+        <div class="chat-footer">
+            <input type="text" placeholder="Pergunte sobre o currículo do Itamar..." @bind="userInput"
+                   @bind:event="oninput" @onkeypress="HandleKeyPress" maxlength="100" disabled="@isTyping" />
+            <button @onclick="SendMessage" disabled="@(string.IsNullOrWhiteSpace(userInput) || isTyping)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+        <div class="char-counter @(userInput.Length >= 90 ? "counter-warn" : "")">
+            @userInput.Length / 100
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool isChatOpen = false;
+    private bool isTyping = false;
+    private string userInput = string.Empty;
+    private List<ChatMessage> messages = new();
+    
+    // Identificador único da conversa para a auditoria no Postgres da Neon
+    private Guid sessaoId = Guid.NewGuid();
+
+    protected override void OnInitialized()
+    {
+        messages.Add(new ChatMessage
+        {
+            Text = "Olá! Eu sou a Iris, assistente inteligente do Itamar. Pode me perguntar sobre a trajetória dele, stack técnica ou experiências profissionais!",
+            IsUser = false
+        });
+    }
+
+    private void ToggleChat() => isChatOpen = !isChatOpen;
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SendMessage();
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(userInput) || isTyping) return;
+
+        var userText = userInput;
+        userInput = string.Empty;
+
+        // Adiciona a pergunta do usuário na tela
+        messages.Add(new ChatMessage { Text = userText, IsUser = true });
+        isTyping = true;
+        StateHasChanged();
+
+        try
+        {
+            // Consome o novo ecossistema .NET 10 + Gemini + Neon
+            var resultado = await ApiService.ConversarComIrisAsync(sessaoId, userText);
+
+            if (resultado != null)
+            {
+                // Atualiza o ID da sessão com o que voltou do banco, garantindo o vínculo
+                sessaoId = resultado.SessaoId;
+                
+                messages.Add(new ChatMessage { Text = resultado.Texto, IsUser = false });
+            }
+            else
+            {
+                messages.Add(new ChatMessage { Text = "Ops, tive um problema para obter uma resposta da Íris. Tente novamente!", IsUser = false });
+            }
+        }
+        catch (Exception)
+        {
+            messages.Add(new ChatMessage { Text = "Erro de conexão ao tentar falar com o servidor da Íris.", IsUser = false });
+        }
+        finally
+        {
+            isTyping = false;
+            StateHasChanged();
+        }
+    }
+}

@@ -1,0 +1,85 @@
+@inject HttpClient Http
+
+<section class="laboratory" id="laboratory">
+    <div class="container-fluid px-4 px-lg-5">
+        <h2 class="section-title">Laboratório</h2>
+        
+        @if (Projects == null)
+        {
+            <div class="text-center p-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Carregando projetos...</span>
+                </div>
+            </div>
+        }
+        else if (!Projects.Any())
+        {
+            <p class="text-center text-muted">Nenhum experimento ativo no laboratório por enquanto.</p>
+        }
+        else
+        {
+            <div class="laboratory-grid">
+                @foreach (var project in Projects)
+                {
+                    <div class="laboratory-item" style="max-width: 380px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; position: relative; overflow: hidden;">
+            
+                        <img src="@project.UrlImagem" alt="@project.Titulo" class="laboratory-image" style="width: 100%; height: 250px; object-fit: cover;">
+            
+                        <div class="laboratory-overlay" style="pointer-events: none;">
+                            <h3>@project.Titulo</h3>
+                            <p>@string.Join(", ", project.Tecnologias ?? Array.Empty<string>())</p>
+                        </div>
+            
+                        <div class="laboratory-info" style="flex-grow: 1; position: relative; z-index: 2;">
+                            <h3>@project.Titulo</h3>
+                            <p class="mb-3">@project.Descricao</p>
+                
+                            <div class="laboratory-links" style="position: relative; z-index: 3;">
+                                @if (!string.IsNullOrEmpty(project.UrlGithub))
+                                {
+                                    <a href="@project.UrlGithub" target="_blank" class="btn btn-sm btn-outline-dark me-2">GitHub</a>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(project.UrlDemonstracao))
+                                {
+                                    <a href="@project.UrlDemonstracao" target="_blank" class="btn btn-sm btn-primary">
+                                        Ver Demo
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private List<ProjetoDto>? Projects;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Projects = await Http.GetFromJsonAsync<List<ProjetoDto>>("api/backoffice/projetos") 
+                       ?? new List<ProjetoDto>();
+        }
+        catch (Exception)
+        {
+            Projects = new List<ProjetoDto>();
+        }
+    }
+
+    public class ProjetoDto
+    {
+        public int Id { get; set; }
+        public string Titulo { get; set; } = string.Empty;
+        public string Descricao { get; set; } = string.Empty;
+        public string[]? Tecnologias { get; set; }
+        public string? UrlImagem { get; set; }
+        public string? UrlGithub { get; set; }
+        public string? UrlDemonstracao { get; set; }
+        public bool Ativo { get; set; }
+    }
+}

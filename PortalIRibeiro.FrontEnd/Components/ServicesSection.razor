@@ -1,0 +1,43 @@
+<!-- Services Component -->
+<section class="services" id="services">
+    <div class="container-fluid px-4 px-lg-5">
+        <h2 class="section-title">Meus Serviços</h2>
+        <div class="services-grid">
+            @foreach (var service in Services)
+            {
+                <div class="service-card">
+                    <div class="service-icon">
+                        @service.Icon
+                    </div>
+                    <h3>@service.Title</h3>
+                    <p>@service.Description</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    private List<Service> Services = new()
+    {
+        new Service 
+        { 
+            Title = "Desenvolvimento",
+            Description = "Aplicações web robustas com as melhores tecnologias",
+            Icon = "💻"
+        },
+        new Service 
+        { 
+            Title = "Otimização",
+            Description = "Performance e SEO para melhor visibilidade",
+            Icon = "⚡"
+        }
+    };
+
+    public class Service
+    {
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public string? Icon { get; set; }
+    }
+}
