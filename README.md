@@ -61,3 +61,4 @@ Camada de cache e triagem para evitar duplicidade de registros através de ident
 Pré-requisitos
 * SDK do .NET 10 instalado.
 * Docker e Docker Compose ativos na máquina (ambiente Linux testado em base Ubuntu).
+* Rider IDE ou um editor de código de sua preferência (como VS Code) com suporte a C#.
