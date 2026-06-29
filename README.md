@@ -11,9 +11,8 @@ A solução é totalmente desacoplada, separando o ecossistema de APIs do front-
 ```text
 PortalIRibeiro/
 ├── docs/                     # Scripts de banco (DDL/Schema) e templates de ambiente (.env.sample)
-├── src/
-│   ├── PortalIRibeiro.API/       # Lógica de negócio, Web API Core, Workers e integrações
-│   └── PortalIRibeiro.FrontEnd/  # Interface SPA interativa em Blazor WebAssembly (WASM)
+│── PortalIRibeiro.API/       # Lógica de negócio, Web API Core, Workers e integrações
+│── PortalIRibeiro.FrontEnd/  # Interface SPA interativa em Blazor WebAssembly (WASM)
 ├── PortalIRibeiro.slnx       # Arquivo de solução unificado do .NET
 └── README.md                 # Documentação principal
 ```
