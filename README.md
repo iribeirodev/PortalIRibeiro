@@ -38,7 +38,7 @@ Como funciona?
 ###  JobScraper & Triagem Automática
 Um ecossistema focado na automação de rotinas para coleta e ingestão de dados externos de mercado.
 
-Onde está o código? A esteira de processamento está localizada em PortalIRibeiro.API/Features/JobScraper.
+Onde está o código? A esteira de processamento está localizada em [PortalIRibeiro.API/Features/JobScraper](./PortalIRibeiro.API/Features/JobScraper).
 
 Como funciona?
 
