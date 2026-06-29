@@ -8,7 +8,8 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Configura o HttpClient padrão para apontar para a sua Web API
-var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5125/";
+//var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5125/";
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? builder.HostEnvironment.BaseAddress;
 if (!apiBaseUrl.EndsWith("/")) apiBaseUrl += "/";
 
 builder.Services.AddScoped(sp => new HttpClient
