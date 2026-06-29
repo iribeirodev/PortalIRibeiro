@@ -20,7 +20,11 @@ PortalIRibeiro/
 
 ## Módulos em Destaque
 
-### Assistente Inteligente Íris (Mecanismo RAG)
+### Assistente Inteligente Íris
+
+<p align="center">
+<img width="400" height="400" alt="resume-assist" src="https://github.com/user-attachments/assets/0aba888c-3fb1-4278-baf9-93b8c029f916" />
+</p>
 
 A Íris é um agente de inteligência artificial integrado nativamente ao portal, projetado para interagir com visitantes e recrutadores através de um chat dinâmico, respondendo perguntas estritamente baseadas no meu histórico e trajetória profissional.
 
