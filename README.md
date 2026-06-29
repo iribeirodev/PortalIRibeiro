@@ -28,7 +28,7 @@ PortalIRibeiro/
 
 A Íris é um agente de inteligência artificial integrado nativamente ao portal, projetado para interagir com visitantes e recrutadores através de um chat dinâmico, respondendo perguntas estritamente baseadas no meu histórico e trajetória profissional.
 
-Onde está o código? Toda a lógica conceitual está isolada na Feature em PortalIRibeiro.API/Features/IrisChat.
+Onde está o código? Toda a lógica conceitual está isolada na Feature em [PortalIRibeiro.API/Features/IrisChat](./PortalIRibeiro.API/Features/IrisChat).
 
 Como funciona? 
 * Implementação de RAG (Retrieval-Augmented Generation) consumindo a API oficial do Google Gemini.
