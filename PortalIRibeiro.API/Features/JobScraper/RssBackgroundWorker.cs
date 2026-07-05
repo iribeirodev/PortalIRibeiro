@@ -30,7 +30,7 @@ public class RssBackgroundWorker(
                 using var scope = serviceProvider.CreateScope();
                 var scraperHandler = scope.ServiceProvider.GetRequiredService<JobScraperHandler>();
                 
-                await scraperHandler.ProcessarCicloTriagemAsync(stoppingToken);
+                await scraperHandler.ExecuteAsync(stoppingToken);
             }
             catch (Exception ex)
             {

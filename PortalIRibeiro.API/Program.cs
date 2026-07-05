@@ -3,6 +3,7 @@ using PortalIRibeiro.API.Data;
 using PortalIRibeiro.API.Features.Backoffice;
 using PortalIRibeiro.API.Features.IrisChat;
 using PortalIRibeiro.API.Features.JobScraper;
+using PortalIRibeiro.API.Features.JobScraper.Services;
 using PortalIRibeiro.API.Features.Portfolio;
 using StackExchange.Redis;
 
@@ -56,7 +57,9 @@ builder.Services.AddHttpClient<GeminiService>();
 // --- Feature: JobScraper ---
 // Motor de Ingestão e Triagem de Vagas via RSS Feeds
 builder.Services.AddScoped<JobScraperHandler>();
+builder.Services.AddScoped<IEmailService, EmailService>(); // <- ADICIONE ESTA LINHA AQUI!
 builder.Services.AddHostedService<RssBackgroundWorker>();
+builder.Services.AddHttpClient<IJobScraperGeminiService, JobScraperGeminiService>();
 
 // --- Feature: Portfolio ---
 // Gerenciamento e Exibição de Projetos no Site

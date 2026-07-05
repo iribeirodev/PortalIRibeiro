@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using PortalIRibeiro.API.Features.JobScraper.Enums;
 
 namespace PortalIRibeiro.API.Features.JobScraper;
 
@@ -37,6 +38,21 @@ public class VagaTriada
 
     [Column("enviado_por_email")]
     public bool EnviadoPorEmail { get; set; } = false;
+    
+    [Column(name: "status", TypeName = "varchar(30)")]
+    public StatusTriagem Status { get; set; }
+    
+    [Column(name: "descricao_bruta")]
+    public string DescricaoBruta { get; set; } = string.Empty;
+    
+    [Column(name: "score_aderencia")]
+    public int? ScoreAderencia { get; set; }
+    
+    [Column(name: "justificativa_ia")]
+    public string? JustificativaIa { get; set; }
+    
+    [Column(name: "gaps_tecnologicos")]
+    public string? GapsTecnologicos { get; set; }
 
     // Propriedade de navegação do EF Core
     [ForeignKey(nameof(FeedId))]

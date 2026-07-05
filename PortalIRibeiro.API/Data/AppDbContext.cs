@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<HistoricoConversa> HistoricosConversas { get; set; }
     public DbSet<RssFeed> RssFeeds { get; set; }
     public DbSet<VagaTriada> VagasTriadas { get; set; }
+    public DbSet<Parameter> Parameters { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,11 +41,23 @@ public class AppDbContext : DbContext
             .HasIndex(h => h.SessaoId)
             .HasDatabaseName("idx_conversas_sessao");
 
+        modelBuilder.Entity<VagaTriada>()
+            .Property(v => v.Status)
+            .HasConversion<string>();
+        
         // Cascade Delete
         modelBuilder.Entity<VagaTriada>()
             .HasOne(v => v.Feed)
             .WithMany(f => f.VagasTriadas)
             .HasForeignKey(v => v.FeedId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<Parameter>(entity =>
+        {
+            entity.ToTable("parameters");
+            entity.HasKey(e => e.ParamKey);
+            entity.Property(e => e.ParamKey).HasColumnName("param_key").HasMaxLength(30);
+            entity.Property(e => e.ParamValue).HasColumnName("param_value");
+        });
     }
 }
