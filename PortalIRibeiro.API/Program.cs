@@ -78,6 +78,8 @@ if (app.Environment.IsDevelopment())
 
 if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection();
 
+app.MapMethods("/health", ["GET", "HEAD"], () => Results.Ok("Robot is alive!"));
+
 app.UseAuthorization();
 app.MapControllers();
 
