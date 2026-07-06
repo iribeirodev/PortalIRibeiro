@@ -43,7 +43,7 @@ public class VagaTriada
     public StatusTriagem Status { get; set; }
     
     [Column(name: "descricao_bruta")]
-    public string DescricaoBruta { get; set; } = string.Empty;
+    public string? DescricaoBruta { get; set; } = string.Empty;
     
     [Column(name: "score_aderencia")]
     public int? ScoreAderencia { get; set; }
