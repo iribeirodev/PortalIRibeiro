@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using PortalIRibeiro.API.Features.JobScraper.Models;
+using Polly; 
 
 namespace PortalIRibeiro.API.Features.JobScraper.Services;
 
@@ -76,10 +77,27 @@ public class JobScraperGeminiService(
             }
         };
 
+        // Configura a política de resiliência
+        // Tenta 3 vezes. Espera 2s na primeira queda, 4s na segunda, 8s na terceira.
+        var retryPolicy = Policy
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(3, 
+                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                (exception, timeSpan, retryCount, context) =>
+                {
+                    logger.LogWarning("API do Gemini barrou por limite de requisições (429). Tentativa {Count} de 3. Aguardando {Time}ms antes de retransmitir...", 
+                        retryCount, timeSpan.TotalMilliseconds);
+                });
+
         try
         {
-            var response = await httpClient.PostAsJsonAsync(urlCompleta, payload, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            // Encapsulq a chamada HTTP dentro da execução da política
+            var response = await retryPolicy.ExecuteAsync(async () =>
+            {
+                var res = await httpClient.PostAsJsonAsync(urlCompleta, payload, cancellationToken);
+                res.EnsureSuccessStatusCode(); // O Polly interceptará essa exceção se o status for 429
+                return res;
+            });
 
             using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken));
             
@@ -103,7 +121,7 @@ public class JobScraperGeminiService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erro ao chamar a API do Gemini para a vaga '{Titulo}'", titulo);
+            logger.LogError(ex, "Erro definitivo ao chamar a API do Gemini para a vaga '{Titulo}' após retries.", titulo);
             throw;
         }
     }
