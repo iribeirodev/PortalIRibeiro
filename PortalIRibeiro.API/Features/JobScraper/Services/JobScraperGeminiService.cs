@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using PortalIRibeiro.API.Features.JobScraper.Models;
-using Polly; 
+using Polly;
 
 namespace PortalIRibeiro.API.Features.JobScraper.Services;
 
@@ -18,18 +18,18 @@ public class JobScraperGeminiService(
 
     private readonly string _apiKey = configuration["Gemini:ApiKey"]
         ?? throw new InvalidOperationException("A chave de API do Gemini ('Gemini:ApiKey') não foi configurada.");
-    
+
     private readonly string _geminiBaseUrl = configuration["Gemini:BaseUrl"]
-        ?? throw new InvalidOperationException("A URL base do Gemini ('Gemini:BaseUrl') não foi configurada.");    
+        ?? throw new InvalidOperationException("A URL base do Gemini ('Gemini:BaseUrl') não foi configurada.");
 
     private readonly string _systemInstruction = CarregarInstrucoes(logger);
 
     private static string CarregarInstrucoes(ILogger<JobScraperGeminiService> log)
     {
-        var contextPath = Path.Combine(Directory.GetCurrentDirectory(), 
-            "Features", 
-            "JobScraper", 
-            "Context", 
+        var contextPath = Path.Combine(Directory.GetCurrentDirectory(),
+            "Features",
+            "JobScraper",
+            "Context",
             "job_scraper_instruction.md");
 
         if (File.Exists(contextPath))
@@ -44,8 +44,8 @@ public class JobScraperGeminiService(
     }
 
     public async Task<VereditoIADto> AnalisarVagaAsync(
-        string titulo, 
-        string descricao, 
+        string titulo,
+        string descricao,
         CancellationToken cancellationToken)
     {
         var urlCompleta = $"{_geminiBaseUrl}?key={_apiKey}";
@@ -66,10 +66,11 @@ public class JobScraperGeminiService(
                     {
                         score = new { type = "INTEGER", description = "Score de 0 a 100 de aderência ao perfil." },
                         justificativa = new { type = "STRING", description = "Resumo sucinto do porquê desse score." },
-                        gaps = new { 
-                            type = "ARRAY", 
-                            items = new { type = "STRING" }, 
-                            description = "Lista de tecnologias ou exigências da vaga que o candidato não possui no perfil." 
+                        gaps = new
+                        {
+                            type = "ARRAY",
+                            items = new { type = "STRING" },
+                            description = "Lista de tecnologias ou exigências da vaga que o candidato não possui no perfil."
                         }
                     },
                     required = new[] { "score", "justificativa", "gaps" }
@@ -78,15 +79,19 @@ public class JobScraperGeminiService(
         };
 
         // Configura a política de resiliência
-        // Tenta 3 vezes. Espera 2s na primeira queda, 4s na segunda, 8s na terceira.
+        // Tenta até 4 vezes. 
+        // Tentativa 1: espera 5 segundos
+        // Tentativa 2: espera 10 segundos
+        // Tentativa 3: espera 20 segundos
+        // Tentativa 4: espera 40 segundos
         var retryPolicy = Policy
             .Handle<HttpRequestException>()
-            .WaitAndRetryAsync(3, 
-                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+            .WaitAndRetryAsync(4,
+                retryAttempt => TimeSpan.FromSeconds(5 * Math.Pow(2, retryAttempt - 1)),
                 (exception, timeSpan, retryCount, context) =>
                 {
-                    logger.LogWarning("API do Gemini barrou por limite de requisições (429). Tentativa {Count} de 3. Aguardando {Time}ms antes de retransmitir...", 
-                        retryCount, timeSpan.TotalMilliseconds);
+                    logger.LogWarning("API do Gemini barrou por limite de requisições (429). Tentativa {Count} de 4. Aguardando {Time} segundos antes de tentar novamente...",
+                        retryCount, timeSpan.TotalSeconds);
                 });
 
         try
@@ -100,13 +105,13 @@ public class JobScraperGeminiService(
             });
 
             using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken));
-            
+
             if (!doc.RootElement.TryGetProperty("candidates", out var candidates) || candidates.GetArrayLength() == 0)
                 throw new InvalidOperationException("A API do Gemini não retornou nenhum candidato válido.");
 
             var primeiroCandidato = candidates[0];
-            
-            if (!primeiroCandidato.TryGetProperty("content", out var content) || 
+
+            if (!primeiroCandidato.TryGetProperty("content", out var content) ||
                 !content.TryGetProperty("parts", out var parts) || parts.GetArrayLength() == 0)
                 throw new InvalidOperationException("Estrutura de conteúdo inválida na resposta do Gemini.");
 
