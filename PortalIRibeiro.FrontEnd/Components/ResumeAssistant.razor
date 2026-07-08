@@ -1,9 +1,10 @@
+@using System.Text.Json
 @using PortalIRibeiro.FrontEnd.Infra.Crosscutting
 @using PortalIRibeiro.FrontEnd.Model
 @using PortalIRibeiro.FrontEnd.Services
 @inject ApiService ApiService
-
 @inject HttpClient Http
+@inject IJSRuntime JS
 
 <button class="chat-floating-btn" @onclick="ToggleChat" title="Fale com a Iris">
     <div class="assistant-branding">
@@ -21,7 +22,7 @@
             </div>
             <div class="header-actions">
                 <span class="online-indicator"></span>
-                <span class="online-text">Online</span>
+                <span class="online-text">Online (@perguntasFeitas/@LIMITE_MAXIMO)</span>
             </div>
         </div>
     </div>
@@ -87,13 +88,26 @@
     // Identificador único da conversa para a auditoria no Postgres da Neon
     private Guid sessaoId = Guid.NewGuid();
 
-    protected override void OnInitialized()
+    private const string STORAGE_KEY = "iris_usage_tracker";
+    private const int LIMITE_MAXIMO = 10;
+    private bool limiteAtingidoHoje = false;
+    private int perguntasFeitas = 0;
+
+    private class ControleUsoIris
+    {
+        public int QuantidadePerguntas { get; set; }
+        public DateTime DataUso { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
     {
         messages.Add(new ChatMessage
         {
             Text = "Olá! Eu sou a Iris, assistente inteligente do Itamar. Pode me perguntar sobre a trajetória dele, stack técnica ou experiências profissionais!",
             IsUser = false
         });
+
+        await VerificarLimiteDiario();
     }
 
     private void ToggleChat() => isChatOpen = !isChatOpen;
@@ -105,11 +119,42 @@
             await SendMessage();
         }
     }
+    
+    private async Task VerificarLimiteDiario()
+    {
+        try
+        {
+            var json = await JS.InvokeAsync<string>("localStorage.getItem", STORAGE_KEY);
+            if (!string.IsNullOrEmpty(json))
+            {
+                var controle = JsonSerializer.Deserialize<ControleUsoIris>(json);
+                if (controle != null && controle.DataUso.Date == DateTime.Today.Date)
+                {
+                    perguntasFeitas = controle.QuantidadePerguntas;
+                
+                    if (perguntasFeitas >= LIMITE_MAXIMO)
+                        limiteAtingidoHoje = true;
+                }
+                else
+                {
+                    perguntasFeitas = 0; // Se virou o dia, garante que começa em zero
+                }
+            }
+            else
+            {
+                perguntasFeitas = 0; // Primeiro acesso do usuário
+            }
+        }
+        catch { }
+    }
 
     private async Task SendMessage()
     {
         if (string.IsNullOrWhiteSpace(userInput) || isTyping) return;
 
+        // Verifica novamente caso o usuário tenha deixado a aba aberta de um dia para o outro
+        await VerificarLimiteDiario();
+        
         var userText = userInput;
         userInput = string.Empty;
 
@@ -117,7 +162,21 @@
         messages.Add(new ChatMessage { Text = userText, IsUser = true });
         isTyping = true;
         StateHasChanged();
-
+        
+        // Se o limite foi atingido, a própria Íris responde educadamente sem bater na API
+        if (limiteAtingidoHoje)
+        {
+            await Task.Delay(800); // Pequeno delay simulando pensamento para ficar natural
+            messages.Add(new ChatMessage 
+            { 
+                Text = $"Você já realizou **{perguntasFeitas} de {LIMITE_MAXIMO} perguntas** hoje. Para garantir a disponibilidade do serviço para outros recrutadores, o limite diário foi atingido. Que tal avaliarmos mais do trabalho do Itamar direto no GitHub ou agendarmos uma conversa?", 
+                IsUser = false 
+            });
+            isTyping = false;
+            StateHasChanged();
+            return;
+        }
+        
         try
         {
             // Consome o novo ecossistema .NET 10 + Gemini + Neon
@@ -129,6 +188,9 @@
                 sessaoId = resultado.SessaoId;
                 
                 messages.Add(new ChatMessage { Text = resultado.Texto, IsUser = false });
+                
+                // Incrementa a pergunta com sucesso no armazenamento local
+                await IncrementarContadorUso();
             }
             else
             {
@@ -145,4 +207,44 @@
             StateHasChanged();
         }
     }
+    
+    private async Task IncrementarContadorUso()
+    {
+        try
+        {
+            var json = await JS.InvokeAsync<string>("localStorage.getItem", STORAGE_KEY);
+            ControleUsoIris controle;
+
+            if (!string.IsNullOrEmpty(json))
+            {
+                controle = JsonSerializer.Deserialize<ControleUsoIris>(json) ?? new ControleUsoIris();
+                if (controle.DataUso.Date == DateTime.Today.Date)
+                {
+                    controle.QuantidadePerguntas++;
+                }
+                else
+                {
+                    controle.QuantidadePerguntas = 1;
+                    controle.DataUso = DateTime.Today;
+                }
+            }
+            else
+            {
+                controle = new ControleUsoIris { QuantidadePerguntas = 1, DataUso = DateTime.Today };
+            }
+
+            perguntasFeitas = controle.QuantidadePerguntas; // <-- Atualiza o contador local
+
+            if (perguntasFeitas >= LIMITE_MAXIMO)
+            {
+                limiteAtingidoHoje = true;
+            }
+
+            var novoJson = JsonSerializer.Serialize(controle);
+            await JS.InvokeVoidAsync("localStorage.setItem", STORAGE_KEY, novoJson);
+        }
+        catch { }
+    }
+    
+    
 }
