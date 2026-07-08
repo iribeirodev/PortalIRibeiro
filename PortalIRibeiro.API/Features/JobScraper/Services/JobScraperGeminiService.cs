@@ -96,7 +96,7 @@ public class JobScraperGeminiService(
 
         try
         {
-            // Encapsulq a chamada HTTP dentro da execução da política
+            // Encapsula a chamada HTTP dentro da execução da política
             var response = await retryPolicy.ExecuteAsync(async () =>
             {
                 var res = await httpClient.PostAsJsonAsync(urlCompleta, payload, cancellationToken);
