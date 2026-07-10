@@ -30,7 +30,7 @@ public class ApiService
         try
         {
             var payload = new RequisicaoChat(sessaoId, mensagem);
-            var resposta = await _http.PostAsJsonAsync("api/iris/perguntar", payload);
+            var resposta = await _http.PostAsJsonAsync("api/iris/chat", payload);
             
             if (resposta.IsSuccessStatusCode)
             {
