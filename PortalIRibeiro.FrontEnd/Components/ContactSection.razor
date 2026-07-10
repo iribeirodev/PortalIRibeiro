@@ -1,56 +1,22 @@
-<!-- Contact Component -->
-<section class="contact" id="contact">
-    <div class="container-fluid px-4 px-lg-5">
-        <div class="contact-content">
-            <h2>Entre em Contato</h2>
-            <form class="contact-form" @onsubmit="HandleSubmit">
-                <div class="form-group">
-                    <label for="name">Nome</label>
-                    <input type="text" id="name" @bind="FormData.Name" required>
-                </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" @bind="FormData.Email" required>
-                </div>
-                <div class="form-group">
-                    <label for="phone">Telefone</label>
-                    <input type="tel" id="phone" @bind="FormData.Phone">
-                </div>
-                <div class="form-group">
-                    <label for="message">Mensagem</label>
-                    <textarea id="message" @bind="FormData.Message" required></textarea>
-                </div>
-                <button type="submit" class="btn-submit">Enviar Mensagem</button>
-                @if (!string.IsNullOrEmpty(SubmitMessage))
-                {
-                    <p style="margin-top: 15px; text-align: center;">@SubmitMessage</p>
-                }
-            </form>
+<!-- Seção Contato -->
+<section id="contacts" class="contato-section">
+    <div class="container text-center">
+        <h2>Vamos conversar?</h2>
+        <p class="contato-subtext">
+            Seja para uma proposta de projeto, consultoria ou oportunidade profissional, estou à disposição.
+        </p>
+        
+        <div class="contato-actions">
+            <!-- Substitua os X pelo seu número real -->
+            <a href="https://wa.me/5511946101590?text=Olá%20Itamar,%20vi%20seu%20portfólio%20e%20gostaria%20de%20conversar!" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="btn-whatsapp-modern">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
+                  <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.907h.004c4.368 0 7.926-3.559 7.93-7.93a7.9 7.9 0 0 0-2.327-5.615zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.69-4.294c-.197-.1-.167-.168-.518-.57l-.528-.617c-.147-.17-.243-.195-.439-.02-.196.174-.753.754-.923.945-.17.19-.34.217-.537.117-1.346-.672-2.193-1.272-2.962-2.598-.199-.343-.033-.527.13-.693.147-.15.34-.394.51-.59.17-.197.226-.34.339-.565.113-.226.056-.425-.028-.594-.085-.17-.753-1.815-.105-2.284.113-.266.242-.32.439-.33.197-.01.425-.01.637.012.213.02.439.099.624.524.239.547.817 1.996.887 2.144.07.148.113.32.014.518-.1.198-.15.32-.297.492-.147.174-.3.348-.43.5-.148.156-.304.326-.13.624.521.897 1.154 1.593 1.963 2.183.31.226.542.226.745.02.2-.206.858-.996 1.09-1.336.23-.34.46-.28.775-.164.315.117 2.002.943 2.341 1.11.34.167.565.248.65.394.085.145.085.836-.113 1.433-.198.597-1.166 1.171-1.614 1.198-.448.027-.88-.086-1.346-.246z"/>
+                </svg>
+                Iniciar conversa no WhatsApp
+            </a>
         </div>
     </div>
 </section>
-
-@code {
-    private FormDataModel FormData = new();
-    private string SubmitMessage = "";
-
-    public class FormDataModel
-    {
-        public string? Name { get; set; }
-        public string? Email { get; set; }
-        public string? Phone { get; set; }
-        public string? Message { get; set; }
-    }
-
-    private async Task HandleSubmit()
-    {
-        // Aqui você pode adicionar lógica para enviar o email
-        // Por enquanto, apenas exibe uma mensagem de sucesso
-        SubmitMessage = "Obrigado! Sua mensagem foi enviada com sucesso.";
-        
-        // Limpar formulário após 2 segundos
-        await Task.Delay(2000);
-        FormData = new();
-        SubmitMessage = "";
-    }
-}
