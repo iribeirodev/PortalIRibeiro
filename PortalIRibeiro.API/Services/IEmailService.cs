@@ -1,4 +1,6 @@
-namespace PortalIRibeiro.API.Features.JobScraper.Services;
+using PortalIRibeiro.API.Entities;
+
+namespace PortalIRibeiro.API.Services;
 
 public interface IEmailService
 {

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PortalIRibeiro.API.Entities;
 using PortalIRibeiro.API.Features.Contato;
-using PortalIRibeiro.API.Features.IrisChat;
+using PortalIRibeiro.API.Features.Iris;
 using PortalIRibeiro.API.Features.JobScraper;
 
 

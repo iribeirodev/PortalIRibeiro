@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PortalIRibeiro.API.Features.IrisChat;
+namespace PortalIRibeiro.API.Features.Iris;
 
 /// <summary>
 /// Entidade que representa o histórico de conversas entre o usuário e a IA Íris, armazenando perguntas, respostas e metadados da interação.

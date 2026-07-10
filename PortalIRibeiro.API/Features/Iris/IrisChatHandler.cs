@@ -1,6 +1,6 @@
 using PortalIRibeiro.API.Data;
 
-namespace PortalIRibeiro.API.Features.IrisChat;
+namespace PortalIRibeiro.API.Features.Iris;
 
 /// <summary>
 /// Classe responsável por orquestrar a interação com a Íris, incluindo a geração de respostas e o registro de conversas no banco de dados.

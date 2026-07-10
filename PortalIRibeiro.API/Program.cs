@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using PortalIRibeiro.API.Data;
 using PortalIRibeiro.API.Features.Backoffice;
-using PortalIRibeiro.API.Features.IrisChat;
+using PortalIRibeiro.API.Features.Iris;
 using PortalIRibeiro.API.Features.JobScraper;
-using PortalIRibeiro.API.Features.JobScraper.Services;
 using PortalIRibeiro.API.Features.Portfolio;
+using PortalIRibeiro.API.Services;
 using StackExchange.Redis;
 
 DotNetEnv.Env.Load();
@@ -13,7 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
-// Registra o Singleton do Redis buscando a string de conexão do Upstash
+// ============================================================================
+// INFRAESTRUTURA COMPARTILHADA & SERVIÇOS GLOBAIS
+// ============================================================================
+
+// Cache Distribuído (Upstash Redis)
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis") 
     ?? throw new InvalidOperationException("Connection string do Redis não encontrada.");
 
@@ -29,46 +33,45 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
-// ============================================================================
 
-// INFRAESTRUTURA COMPARTILHADA
+// Banco de Dados Central (PostgreSQL)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
     ?? throw new InvalidOperationException("String de conexão 'DefaultConnection' não foi encontrada.");
 
-// Banco de Dados Central
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// Serviços Globais de Infra do ASP.NET Core
+// Utilitários de Infraestrutura do ASP.NET Core
 builder.Services.AddHttpClient();
-builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(); // Documentação OpenAPI nativa (.NET 10)
 
-// INJEÇÃO DE DEPENDÊNCIA POR FATIA DE NEGÓCIO (FEATURE FOLDERS)
+// ============================================================================
+// INJEÇÃO DE DEPENDÊNCIA POR FATIA DE NEGÓCIO (VERTICAL SLICES)
+// ============================================================================
 
 // --- Feature: Backoffice ---
 builder.Services.AddScoped<BackofficeHandler>();
 
-// --- Feature: IrisChat ---
-// Handler de Caso de Uso e Integração Cognitiva com a API do Gemini
+// --- Feature: Iris ---
 builder.Services.AddScoped<IrisChatHandler>();
 builder.Services.AddHttpClient<GeminiService>();
 
 // --- Feature: JobScraper ---
-// Motor de Ingestão e Triagem de Vagas via RSS Feeds
 builder.Services.AddScoped<JobScraperHandler>();
-builder.Services.AddScoped<IEmailService, EmailService>(); // <- ADICIONE ESTA LINHA AQUI!
+builder.Services.AddScoped<IEmailService, EmailService>(); 
 builder.Services.AddHostedService<RssBackgroundWorker>();
 builder.Services.AddHttpClient<IJobScraperGeminiService, JobScraperGeminiService>();
 
 // --- Feature: Portfolio ---
-// Gerenciamento e Exibição de Projetos no Site
 builder.Services.AddScoped<PortfolioHandler>();
 
-
+builder.Services.AddAuthorization();
 var app = builder.Build();
 
-// Aplica o CORS antes dos controllers
+// ============================================================================
+// PIPELINE DE REQUISIÇÕES HTTP (MIDDLEWARES & ROTAS)
+// ============================================================================
+
 app.UseCors("Desenvolvimento");
 
 if (app.Environment.IsDevelopment())
@@ -76,11 +79,19 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection();
-
-app.MapMethods("/health", ["GET", "HEAD"], () => Results.Ok("Robot is alive!"));
+if (!app.Environment.IsDevelopment()) 
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthorization();
-app.MapControllers();
+
+// Endpoint de Monitoramento (Health Check)
+app.MapMethods("/health", ["GET", "HEAD"], () => Results.Ok("Robot is alive!"));
+
+// Mapeamento das Minimal APIs (Fatias Verticais)
+app.MapPortfolioEndpoints();
+app.MapIrisEndpoints();
+app.MapBackofficeEndpoints();
 
 app.Run();

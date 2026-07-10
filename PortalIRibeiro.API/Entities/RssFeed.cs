@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PortalIRibeiro.API.Features.JobScraper;
+namespace PortalIRibeiro.API.Entities;
 
 [Table("rss_feeds")]
 public class RssFeed

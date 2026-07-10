@@ -2,8 +2,9 @@ using System.ServiceModel.Syndication;
 using System.Xml;
 using Microsoft.EntityFrameworkCore;
 using PortalIRibeiro.API.Data;
+using PortalIRibeiro.API.Entities;
 using PortalIRibeiro.API.Features.JobScraper.Enums;
-using PortalIRibeiro.API.Features.JobScraper.Services;
+using PortalIRibeiro.API.Services;
 
 namespace PortalIRibeiro.API.Features.JobScraper;
 
@@ -226,7 +227,10 @@ public class JobScraperHandler(
 
                 try
                 {
-                    var resultadoIa = await jobScraperGeminiService.AnalisarVagaAsync(vaga.TituloVaga, vaga.DescricaoBruta, stoppingToken);
+                    var resultadoIa = await jobScraperGeminiService.AnalisarVagaAsync(
+                        vaga.TituloVaga, 
+                        vaga.DescricaoBruta ?? string.Empty, 
+                        stoppingToken);
                     
                     vaga.ScoreAderencia = resultadoIa.Score;
                     vaga.JustificativaIa = resultadoIa.Justificativa;

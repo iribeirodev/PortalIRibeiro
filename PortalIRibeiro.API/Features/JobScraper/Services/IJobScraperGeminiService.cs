@@ -1,6 +1,6 @@
 using PortalIRibeiro.API.Features.JobScraper.Models;
 
-namespace PortalIRibeiro.API.Features.JobScraper.Services;
+namespace PortalIRibeiro.API.Features.JobScraper;
 
 public interface IJobScraperGeminiService
 {

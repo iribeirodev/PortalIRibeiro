@@ -2,8 +2,9 @@ using MailKit.Net.Smtp;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using PortalIRibeiro.API.Data;
+using PortalIRibeiro.API.Entities;
 
-namespace PortalIRibeiro.API.Features.JobScraper.Services;
+namespace PortalIRibeiro.API.Services;
 
 public class EmailService(
     IServiceScopeFactory scopeFactory,
@@ -18,7 +19,10 @@ public class EmailService(
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
             // Busca todas as configurações de e-mail de uma só vez do banco de dados
-            var chavesEmail = new[] { "Email:SmtpHost", "Email:SmtpPort", "Email:SmtpUser", "Email:SmtpPass", "Email:EmailDestino", "Email:TemplateAlertaVaga" };
+            var chavesEmail = new[] { 
+                "Email:SmtpHost", "Email:SmtpPort", 
+                "Email:SmtpUser", "Email:SmtpPass", 
+                "Email:EmailDestino", "Email:TemplateAlertaVaga" };
             
             var parametros = await context.Parameters
                 .Where(p => chavesEmail.Any(chave => chave == p.ParamKey))

@@ -3,7 +3,7 @@ using System.Text.Json;
 using PortalIRibeiro.API.Features.JobScraper.Models;
 using Polly;
 
-namespace PortalIRibeiro.API.Features.JobScraper.Services;
+namespace PortalIRibeiro.API.Features.JobScraper;
 
 public class JobScraperGeminiService(
     HttpClient httpClient,

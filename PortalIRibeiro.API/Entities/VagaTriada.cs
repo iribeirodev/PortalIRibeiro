@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using PortalIRibeiro.API.Features.JobScraper.Enums;
 
-namespace PortalIRibeiro.API.Features.JobScraper;
+namespace PortalIRibeiro.API.Entities;
 
 [Table("vagas_triadas")]
 public class VagaTriada

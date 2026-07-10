@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using StackExchange.Redis;
 
-namespace PortalIRibeiro.API.Features.IrisChat;
+namespace PortalIRibeiro.API.Features.Iris;
 
 /// <summary>
 /// Serviço responsável por interagir com a API Gemini para gerar respostas baseadas em contexto e instruções do sistema.
