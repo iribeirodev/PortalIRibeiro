@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using PortalIRibeiro.API.Entities;
 using PortalIRibeiro.API.Features.Contato;
 using PortalIRibeiro.API.Features.Iris;
-using PortalIRibeiro.API.Features.JobScraper;
 
 
 namespace PortalIRibeiro.API.Data;
@@ -16,8 +15,6 @@ public class AppDbContext : DbContext
     public DbSet<Projeto> Projetos { get; set; }
     public DbSet<MensagemContato> MensagensContato { get; set; }
     public DbSet<HistoricoConversa> HistoricosConversas { get; set; }
-    public DbSet<RssFeed> RssFeeds { get; set; }
-    public DbSet<VagaTriada> VagasTriadas { get; set; }
     public DbSet<Parameter> Parameters { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -29,29 +26,10 @@ public class AppDbContext : DbContext
             .Property(p => p.Tecnologias)
             .HasColumnType("varchar(50)[]");
 
-        modelBuilder.Entity<RssFeed>()
-            .HasIndex(f => f.UrlFeed)
-            .IsUnique();
-
-        modelBuilder.Entity<VagaTriada>()
-            .HasIndex(v => v.GuidVaga)
-            .IsUnique();
-
         modelBuilder.Entity<HistoricoConversa>()
             .HasIndex(h => h.SessaoId)
             .HasDatabaseName("idx_conversas_sessao");
 
-        modelBuilder.Entity<VagaTriada>()
-            .Property(v => v.Status)
-            .HasConversion<string>();
-        
-        // Cascade Delete
-        modelBuilder.Entity<VagaTriada>()
-            .HasOne(v => v.Feed)
-            .WithMany(f => f.VagasTriadas)
-            .HasForeignKey(v => v.FeedId)
-            .OnDelete(DeleteBehavior.Cascade);
-        
         modelBuilder.Entity<Parameter>(entity =>
         {
             entity.ToTable("parameters");

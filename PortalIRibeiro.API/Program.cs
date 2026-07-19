@@ -2,26 +2,28 @@ using Microsoft.EntityFrameworkCore;
 using PortalIRibeiro.API.Data;
 using PortalIRibeiro.API.Features.Backoffice;
 using PortalIRibeiro.API.Features.Iris;
-using PortalIRibeiro.API.Features.JobScraper;
 using PortalIRibeiro.API.Features.Portfolio;
-using PortalIRibeiro.API.Services;
 using StackExchange.Redis;
 
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddEnvironmentVariables();
+// Garante os provedores padrão de Log (Console, Debug, etc.)
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
-// ============================================================================
-// INFRAESTRUTURA COMPARTILHADA & SERVIÇOS GLOBAIS
-// ============================================================================
+builder.Configuration.AddEnvironmentVariables();
 
 // Cache Distribuído (Upstash Redis)
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis") 
     ?? throw new InvalidOperationException("Connection string do Redis não encontrada.");
 
-builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
+var redisOptions = ConfigurationOptions.Parse(redisConnectionString);
+redisOptions.AbortOnConnectFail = false; // Evita travar o boot se o Upstash demorar
+redisOptions.ConnectTimeout = 5000;
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisOptions));
 
 // Política de CORS
 builder.Services.AddCors(options =>
@@ -41,37 +43,28 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// Utilitários de Infraestrutura do ASP.NET Core
 builder.Services.AddHttpClient();
-builder.Services.AddOpenApi(); // Documentação OpenAPI nativa (.NET 10)
+builder.Services.AddOpenApi();
 
-// ============================================================================
-// INJEÇÃO DE DEPENDÊNCIA POR FATIA DE NEGÓCIO (VERTICAL SLICES)
-// ============================================================================
+// Configura log de requisições
+builder.Services.AddHttpLogging(logging =>
+{
+    logging.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestMethod
+                            | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestPath
+                            | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.ResponseStatusCode;
+});
 
-// --- Feature: Backoffice ---
+// Injeção de Dependência por fatias
 builder.Services.AddScoped<BackofficeHandler>();
-
-// --- Feature: Iris ---
 builder.Services.AddScoped<IrisChatHandler>();
 builder.Services.AddHttpClient<GeminiService>();
-
-// --- Feature: JobScraper ---
-builder.Services.AddScoped<JobScraperHandler>();
-builder.Services.AddScoped<IEmailService, EmailService>(); 
-builder.Services.AddHostedService<RssBackgroundWorker>();
-builder.Services.AddHttpClient<IJobScraperGeminiService, JobScraperGeminiService>();
-
-// --- Feature: Portfolio ---
 builder.Services.AddScoped<PortfolioHandler>();
 
 builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
-// ============================================================================
-// PIPELINE DE REQUISIÇÕES HTTP (MIDDLEWARES & ROTAS)
-// ============================================================================
-
+app.UseHttpLogging();
 app.UseCors("Desenvolvimento");
 
 if (app.Environment.IsDevelopment())
@@ -86,10 +79,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseAuthorization();
 
-// Endpoint de Monitoramento (Health Check)
 app.MapMethods("/health", ["GET", "HEAD"], () => Results.Ok("Robot is alive!"));
 
-// Mapeamento das Minimal APIs (Fatias Verticais)
 app.MapPortfolioEndpoints();
 app.MapIrisEndpoints();
 app.MapBackofficeEndpoints();
