@@ -1,15 +1,15 @@
-using PortalIRibeiro.API.Data;
+using PortalIRibeiro.API.Infrastructure.Repositories;
 
 namespace PortalIRibeiro.API.Features.Iris;
 
 /// <summary>
 /// Classe responsável por orquestrar a interação com a Íris, incluindo a geração de respostas e o registro de conversas no banco de dados.
 /// </summary>
-/// <param name="context"></param>
+/// <param name="historicoConversaRepository"></param>
 /// <param name="geminiService"></param>
 /// <param name="logger"></param>
 public class IrisChatHandler(
-    AppDbContext context,
+    IHistoricoConversaRepository historicoConversaRepository,
     GeminiService geminiService,
     ILogger<IrisChatHandler> logger
 )
@@ -30,8 +30,7 @@ public class IrisChatHandler(
             DataInteracao = DateTimeOffset.UtcNow
         };
 
-        context.HistoricosConversas.Add(logConversa);
-        await context.SaveChangesAsync();
+        await historicoConversaRepository.AdicionarAsync(logConversa);
 
         return new RespostaChat
         {

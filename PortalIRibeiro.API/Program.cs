@@ -3,6 +3,7 @@ using PortalIRibeiro.API.Data;
 using PortalIRibeiro.API.Features.Backoffice;
 using PortalIRibeiro.API.Features.Iris;
 using PortalIRibeiro.API.Features.Portfolio;
+using PortalIRibeiro.API.Infrastructure.Repositories;
 using StackExchange.Redis;
 
 DotNetEnv.Env.Load();
@@ -59,6 +60,8 @@ builder.Services.AddScoped<BackofficeHandler>();
 builder.Services.AddScoped<IrisChatHandler>();
 builder.Services.AddHttpClient<GeminiService>();
 builder.Services.AddScoped<PortfolioHandler>();
+builder.Services.AddScoped<IProjetoRepository, ProjetoRepository>();
+builder.Services.AddScoped<IHistoricoConversaRepository, HistoricoConversaRepository>();
 
 builder.Services.AddAuthorization();
 
