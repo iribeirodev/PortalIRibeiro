@@ -1,4 +1,6 @@
-using PortalIRibeiro.API.Infrastructure.Repositories;
+
+using PortalIRibeiro.API.Entities;
+using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 
 namespace PortalIRibeiro.API.Features.Iris;
 

@@ -1,13 +1,13 @@
 using Dapper;
-using Npgsql;
-using PortalIRibeiro.API.Entities;
 using PortalIRibeiro.API.Infrastructure.Data;
+using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
+using ProjetoEntidade = PortalIRibeiro.API.Entities.Projeto;
 
-namespace PortalIRibeiro.API.Infrastructure.Repositories;
+namespace PortalIRibeiro.API.Infrastructure.Repositories.Impl;
 
 public class ProjetoRepository(NpgsqlConnectionFactory connectionFactory) : IProjetoRepository
 {
-    public async Task<List<Projeto>> ObterProjetosAtivosAsync(CancellationToken cancellationToken = default)
+    public async Task<List<ProjetoEntidade>> ObterProjetosAtivosAsync(CancellationToken cancellationToken = default)
     {
         await using var connection = connectionFactory.CreateConnection();
         const string sql = @"
@@ -17,10 +17,10 @@ public class ProjetoRepository(NpgsqlConnectionFactory connectionFactory) : IPro
             WHERE ativo = true
             ORDER BY data_criacao DESC";
 
-        return (await connection.QueryAsync<Projeto>(new CommandDefinition(sql, cancellationToken: cancellationToken))).AsList();
+        return (await connection.QueryAsync<ProjetoEntidade>(new CommandDefinition(sql, cancellationToken: cancellationToken))).AsList();
     }
 
-    public async Task<Projeto> CriarProjetoAsync(Projeto novoProjeto, CancellationToken cancellationToken = default)
+    public async Task<ProjetoEntidade> CriarProjetoAsync(ProjetoEntidade novoProjeto, CancellationToken cancellationToken = default)
     {
         await using var connection = connectionFactory.CreateConnection();
         const string sql = @"

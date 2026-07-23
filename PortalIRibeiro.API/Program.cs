@@ -1,8 +1,10 @@
 using PortalIRibeiro.API.Features.Backoffice;
 using PortalIRibeiro.API.Features.Iris;
-using PortalIRibeiro.API.Features.Portfolio;
+using PortalIRibeiro.API.Features.Projeto;
 using PortalIRibeiro.API.Infrastructure.Data;
-using PortalIRibeiro.API.Infrastructure.Repositories;
+using PortalIRibeiro.API.Infrastructure.Middleware;
+using PortalIRibeiro.API.Infrastructure.Repositories.Impl;
+using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 using StackExchange.Redis;
 
 DotNetEnv.Env.Load();
@@ -54,7 +56,7 @@ builder.Services.AddHttpLogging(logging =>
 builder.Services.AddScoped<BackofficeHandler>();
 builder.Services.AddScoped<IrisChatHandler>();
 builder.Services.AddHttpClient<GeminiService>();
-builder.Services.AddScoped<PortfolioHandler>();
+builder.Services.AddScoped<ProjetoHandler>();
 builder.Services.AddScoped<IProjetoRepository, ProjetoRepository>();
 builder.Services.AddScoped<IHistoricoConversaRepository, HistoricoConversaRepository>();
 
@@ -63,6 +65,7 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 app.UseHttpLogging();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseCors("Desenvolvimento");
 
 if (app.Environment.IsDevelopment())
@@ -79,7 +82,7 @@ app.UseAuthorization();
 
 app.MapMethods("/health", ["GET", "HEAD"], () => Results.Ok("Robot is alive!"));
 
-app.MapPortfolioEndpoints();
+app.MapProjetoEndpoints();
 app.MapIrisEndpoints();
 app.MapBackofficeEndpoints();
 

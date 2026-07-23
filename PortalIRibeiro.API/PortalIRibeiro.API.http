@@ -1,6 +1,0 @@
-@PortalIRibeiro.API_HostAddress = http://localhost:5125
-
-GET {{PortalIRibeiro.API_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
