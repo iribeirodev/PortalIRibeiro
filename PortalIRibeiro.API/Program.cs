@@ -1,8 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-using PortalIRibeiro.API.Data;
 using PortalIRibeiro.API.Features.Backoffice;
 using PortalIRibeiro.API.Features.Iris;
 using PortalIRibeiro.API.Features.Portfolio;
+using PortalIRibeiro.API.Infrastructure.Data;
 using PortalIRibeiro.API.Infrastructure.Repositories;
 using StackExchange.Redis;
 
@@ -38,11 +37,7 @@ builder.Services.AddCors(options =>
 });
 
 // Banco de Dados Central (PostgreSQL)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? throw new InvalidOperationException("String de conexão 'DefaultConnection' não foi encontrada.");
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+builder.Services.AddSingleton<NpgsqlConnectionFactory>();
 
 builder.Services.AddHttpClient();
 builder.Services.AddOpenApi();
