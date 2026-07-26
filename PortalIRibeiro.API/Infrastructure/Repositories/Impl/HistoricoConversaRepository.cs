@@ -13,7 +13,7 @@ public class HistoricoConversaRepository(NpgsqlConnectionFactory connectionFacto
         await connection.OpenAsync(cancellationToken);
 
         const string sql = @"
-            INSERT INTO historico_conversas (
+            INSERT INTO portal.historico_conversas (
                 sessao_id, pergunta_usuario, resposta_ia, data_interacao)
             VALUES (
                 @SessaoId, @PerguntaUsuario, @RespostaIa, @DataInteracao)";
