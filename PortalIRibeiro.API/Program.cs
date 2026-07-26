@@ -5,13 +5,26 @@ using PortalIRibeiro.API.Infrastructure.Data;
 using PortalIRibeiro.API.Infrastructure.Middleware;
 using PortalIRibeiro.API.Infrastructure.Repositories.Impl;
 using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
+using PortalIRibeiro.API.Infrastructure.Serialization;
 using StackExchange.Redis;
+using DotNetEnv;
 
-DotNetEnv.Env.Load();
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateSlimBuilder(args);
 
-// Garante os provedores padrão de Log (Console, Debug, etc.)
+// Carrega as variáveis do .env no processo do SO
+Env.TraversePath().Load();
+
+// Adiciona as variáveis do processo no IConfiguration do ASP.NET Core
+builder.Configuration.AddEnvironmentVariables();
+
+// Configura o Source Generator para o pipeline HTTP (Minimal APIs)
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonContext.Default);
+});
+
+// Provedores padrão de Log
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 

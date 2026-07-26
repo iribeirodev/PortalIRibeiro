@@ -1,35 +1,50 @@
-using Dapper;
+using PortalIRibeiro.API.Entities;
 using PortalIRibeiro.API.Infrastructure.Data;
 using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
-using ProjetoEntidade = PortalIRibeiro.API.Entities.Projeto;
+using Npgsql;
 
 namespace PortalIRibeiro.API.Infrastructure.Repositories.Impl;
 
 public class ProjetoRepository(NpgsqlConnectionFactory connectionFactory) : IProjetoRepository
 {
-    public async Task<List<ProjetoEntidade>> ObterProjetosAtivosAsync(CancellationToken cancellationToken = default)
+    public async Task<List<Projeto>> ObterProjetosAtivosAsync(CancellationToken cancellationToken = default)
     {
+        const string sql = """
+        SELECT
+            id,
+            titulo,
+            descricao,
+            COALESCE(url_github, '') AS url_github,
+            COALESCE(url_demonstracao, '') AS url_demonstracao,
+            ativo,
+            data_criacao
+        FROM portal.projetos
+        WHERE ativo = true
+        ORDER BY data_criacao DESC
+        """;
+
         await using var connection = connectionFactory.CreateConnection();
-        const string sql = @"
-            SELECT id, titulo, descricao, tecnologias, url_imagem AS UrlImagem, url_github AS UrlGithub,
-                   url_demonstracao AS UrlDemonstracao, data_criacao AS DataCriacao, ativo AS Ativo
-            FROM projetos
-            WHERE ativo = true
-            ORDER BY data_criacao DESC";
+        await connection.OpenAsync(cancellationToken);
 
-        return (await connection.QueryAsync<ProjetoEntidade>(new CommandDefinition(sql, cancellationToken: cancellationToken))).AsList();
-    }
+        await using var command = new NpgsqlCommand(sql, connection);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
-    public async Task<ProjetoEntidade> CriarProjetoAsync(ProjetoEntidade novoProjeto, CancellationToken cancellationToken = default)
-    {
-        await using var connection = connectionFactory.CreateConnection();
-        const string sql = @"
-            INSERT INTO projetos (titulo, descricao, tecnologias, url_imagem, url_github, url_demonstracao, data_criacao, ativo)
-            VALUES (@Titulo, @Descricao, @Tecnologias, @UrlImagem, @UrlGithub, @UrlDemonstracao, @DataCriacao, @Ativo)
-            RETURNING id";
+        var projetos = new List<Projeto>();
 
-        var id = await connection.ExecuteScalarAsync<int>(new CommandDefinition(sql, novoProjeto, cancellationToken: cancellationToken));
-        novoProjeto.Id = id;
-        return novoProjeto;
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            projetos.Add(new Projeto
+            {
+                Id = reader.GetInt32(reader.GetOrdinal("id")),
+                Titulo = reader.GetString(reader.GetOrdinal("titulo")),
+                Descricao = reader.GetString(reader.GetOrdinal("descricao")),
+                UrlGithub = reader.GetString(reader.GetOrdinal("url_github")),
+                UrlDemonstracao = reader.GetString(reader.GetOrdinal("url_demonstracao")),
+                Ativo = reader.GetBoolean(reader.GetOrdinal("ativo")),
+                DataCriacao = reader.GetDateTime(reader.GetOrdinal("data_criacao"))
+            });
+        }
+
+        return projetos;
     }
 }

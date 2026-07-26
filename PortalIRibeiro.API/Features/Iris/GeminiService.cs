@@ -2,16 +2,13 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using StackExchange.Redis;
+using PortalIRibeiro.API.Infrastructure.Serialization;
 
 namespace PortalIRibeiro.API.Features.Iris;
 
 /// <summary>
 /// Serviço responsável por interagir com a API Gemini para gerar respostas baseadas em contexto e instruções do sistema.
 /// </summary>
-/// <param name="httpClient"></param>
-/// <param name="configuration"></param>
-/// <param name="logger"></param>
-/// <param name="redis"></param>
 public class GeminiService(
     HttpClient httpClient,
     IConfiguration configuration,
@@ -34,7 +31,7 @@ public class GeminiService(
     {
         var contextPath = Path.Combine(AppContext.BaseDirectory, 
             "Features", 
-            "IrisChat", 
+            "Iris", 
             "Context", "iris_instruction.md");
 
         if (File.Exists(contextPath))
@@ -63,29 +60,25 @@ public class GeminiService(
 
             var urlComKey = $"{geminiUrl}?key={apiKey}";
 
-            var payload = new
+            // Payload fortemente tipado para Native AOT
+            var payload = new GeminiRequest
             {
-                systemInstruction = new
+                SystemInstruction = new GeminiSystemInstruction
                 {
-                    parts = new[]
-                    {
-                        new { text = systemInstruction } 
-                    }
+                    Parts = [new GeminiPart { Text = systemInstruction }]
                 },
-                contents = new[]
-                {
-                    new
+                Contents =
+                [
+                    new GeminiContent
                     {
-                        role = "user",
-                        parts = new[]
-                        {
-                            new { text = $"<contexto_rag>\n{contextoRags}\n</contexto_rag>\n\n<user_input>\n{perguntaUsuario}\n</user_input>" }
-                        }
+                        Role = "user",
+                        Parts = [new GeminiPart { Text = $"<contexto_rag>\n{contextoRags}\n</contexto_rag>\n\n<user_input>\n{perguntaUsuario}\n</user_input>" }]
                     }
-                }
+                ]
             };
 
-            var jsonPayload = JsonSerializer.Serialize(payload);
+            // Serialização via Source Generator
+            var jsonPayload = JsonSerializer.Serialize(payload, AppJsonContext.Default.GeminiRequest);
             var conteudoHttp = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
             var respostaHttp = await httpClient.PostAsync(urlComKey, conteudoHttp);
@@ -97,8 +90,9 @@ public class GeminiService(
                 return "Desculpe, estou com dificuldades para acessar meu cérebro de IA agora. Tente novamente em instantes.";
             }
 
+            // Deserialização via Source Generator
             var jsonResposta = await respostaHttp.Content.ReadAsStringAsync();
-            var resultadoGemini = JsonSerializer.Deserialize<GeminiResponse>(jsonResposta);
+            var resultadoGemini = JsonSerializer.Deserialize(jsonResposta, AppJsonContext.Default.GeminiResponse);
             var textoResposta = resultadoGemini?.Candidates?[0].Content?.Parts?[0].Text;
 
             return textoResposta?.Trim() ?? "Não consegui formular uma resposta adequada. Pode perguntar de outra forma?";
@@ -111,6 +105,42 @@ public class GeminiService(
     }
 }
 
+// ==============================================================================
+// DTOs de Request (Gemini API)
+// ==============================================================================
+public class GeminiRequest
+{
+    [JsonPropertyName("systemInstruction")]
+    public GeminiSystemInstruction? SystemInstruction { get; set; }
+
+    [JsonPropertyName("contents")]
+    public GeminiContent[]? Contents { get; set; }
+}
+
+public class GeminiSystemInstruction
+{
+    [JsonPropertyName("parts")]
+    public GeminiPart[]? Parts { get; set; }
+}
+
+public class GeminiContent
+{
+    [JsonPropertyName("role")]
+    public string Role { get; set; } = "user";
+
+    [JsonPropertyName("parts")]
+    public GeminiPart[]? Parts { get; set; }
+}
+
+public class GeminiPart
+{
+    [JsonPropertyName("text")]
+    public string? Text { get; set; }
+}
+
+// ==============================================================================
+// DTOs de Response (Gemini API)
+// ==============================================================================
 public class GeminiResponse
 {
     [JsonPropertyName("candidates")]

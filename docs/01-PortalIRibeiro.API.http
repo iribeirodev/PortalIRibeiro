@@ -1,0 +1,49 @@
+@hostname = localhost
+@port = 5000
+@host = http://{{hostname}}:{{port}}
+@contentType = application/json
+
+### ------------------------------------------------------------------
+### 1. Íris Chatbot - Enviar Pergunta (Com Sessão Zerada / Nova)
+### ------------------------------------------------------------------
+POST {{host}}/api/iris/chat
+Content-Type: {{contentType}}
+
+{
+  "sessaoId": "00000000-0000-0000-0000-000000000000",
+  "texto": "Quem é o Itamar?"
+}
+
+###
+
+### ------------------------------------------------------------------
+### 2. Íris Chatbot - Enviar Pergunta (Com Sessão Específica)
+### ------------------------------------------------------------------
+POST {{host}}/api/iris/chat
+Content-Type: {{contentType}}
+
+{
+  "sessaoId": "4ea96f01-b285-4d5a-a64a-8b50512bee40",
+  "texto": "Onde o Itamar já atuou com C#?"
+}
+
+###
+
+### ------------------------------------------------------------------
+### 3. Teste de Validação Íris - Enviar Texto Vazio (Deve retornar 400 ErrorResponse)
+### ------------------------------------------------------------------
+POST {{host}}/api/iris/chat
+Content-Type: {{contentType}}
+
+{
+  "sessaoId": "00000000-0000-0000-0000-000000000000",
+  "texto": ""
+}
+
+###
+
+### ------------------------------------------------------------------
+### 4. Backoffice - Listar Projetos Ativos
+### ------------------------------------------------------------------
+GET {{host}}/api/backoffice/projetos
+Accept: {{contentType}}

@@ -16,9 +16,11 @@ RUN dotnet restore "PortalIRibeiro.API/PortalIRibeiro.API.csproj"
 COPY PortalIRibeiro.API/ PortalIRibeiro.API/
 WORKDIR "/src/PortalIRibeiro.API"
 
-# Publica o binário nativo (Native AOT)
+# Publica o binário nativo autônomo (Self-Contained + Linux-x64)
 RUN dotnet publish "PortalIRibeiro.API.csproj" \
     -c Release \
+    -r linux-x64 \
+    --self-contained true \
     -o /app/publish
 
 # Estágio Final (Apenas dependências de OS / imagem ultra leve)
@@ -32,5 +34,5 @@ COPY --from=build /app/publish .
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 
-# Executa diretamente o binário nativo compilado (sem o comando 'dotnet')
+# Executa diretamente o binário nativo compilado
 ENTRYPOINT ["./PortalIRibeiro.API"]

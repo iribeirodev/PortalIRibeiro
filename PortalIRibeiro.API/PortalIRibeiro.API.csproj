@@ -4,28 +4,59 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Habilita os Interceptors necessários pelo Dapper.AOT -->
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);Dapper.AOT</InterceptorsNamespaces>
+    <EnableDapperAot>true</EnableDapperAot>
+    
+    <PublishAot>true</PublishAot>
+
+    <!-- Suprime o aviso falso-positivo do MaxLengthAttribute em Native AOT -->
+    <NoWarn>$(NoWarn);IL2026</NoWarn>
+
+    <!-- Mantenha InvariantGlobalization falso para o Npgsql -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+
+    <!-- Opcional para AOT: Remove símbolos e reduz o tamanho do binário nativo final -->
+    <StripSymbols>true</StripSymbols>
+    <NativeDebugSymbols>false</NativeDebugSymbols>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+
+    <!-- Impede a geração de manifestos de static web assets -->
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.1.35" />
-    <PackageReference Include="Dapper.AOT" Version="0.1.27" />
+    <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+    </Content>  
     <PackageReference Include="DotNetEnv" Version="3.2.0" />
     <PackageReference Include="MailKit" Version="4.17.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
-    <PackageReference Include="Npgsql" Version="9.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <PackageReference Include="Polly" Version="8.7.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="StackExchange.Redis" Version="3.0.0" />
     <PackageReference Include="System.ServiceModel.Syndication" Version="10.0.9" />
-    <PackageReference Include="Microsoft.OpenApi" Version="2.9.0" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
+
+    <!-- Não copia os arquivos appsettings para a publicação -->
+    <Content Update="appsettings*.json" CopyToPublishDirectory="Never" />
+    <PackageReference Include="Npgsql" Version="10.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Features\IrisChat\Context\iris_instruction.md">
+    <None Include=".env" Condition="Exists('.env')">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </None>
-    <None Update="Features\JobScraper\Context\job_scraper_instruction.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    
+    <!-- Habilita a cópia dos appsettings para a pasta de Publish -->
+    <Content Update="appsettings*.json" CopyToPublishDirectory="Always" />
+
+    <None Update="Features\Iris\Context\iris_instruction.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </None>
   </ItemGroup>
 
