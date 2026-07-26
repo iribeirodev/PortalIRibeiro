@@ -1,27 +1,36 @@
-# Estágio de Build (.NET 10 SDK)
+# Estágio de Build (SDK + Ferramentas de Compilação C++ para Native AOT)
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copia os arquivos de projeto primeiro para otimizar o cache de camadas do Docker
+# Instala ferramentas necessárias para a compilação nativa (clang e zlib)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    clang \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copia e restaura dependências (otimização de cache)
 COPY ["PortalIRibeiro.API/PortalIRibeiro.API.csproj", "PortalIRibeiro.API/"]
 RUN dotnet restore "PortalIRibeiro.API/PortalIRibeiro.API.csproj"
 
-# Copia o restante do código da API e builda
+# Copia o restante do código
 COPY PortalIRibeiro.API/ PortalIRibeiro.API/
 WORKDIR "/src/PortalIRibeiro.API"
-RUN dotnet build "PortalIRibeiro.API.csproj" -c Release -o /app/build
 
-# Publica a aplicação compilada
-FROM build AS publish
-RUN dotnet publish "PortalIRibeiro.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+# Publica o binário nativo (Native AOT)
+RUN dotnet publish "PortalIRibeiro.API.csproj" \
+    -c Release \
+    -o /app/publish
 
-# Estágio Final/Runtime (Imagem leve do ASP.NET Core 10)
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+# Estágio Final (Apenas dependências de OS / imagem ultra leve)
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
 
-# Koyeb usa a porta 8080 ou 80 por padrão, vamos expor a 8080 que é o novo padrão do .NET 8+
+# Copia os arquivos gerados no publish nativo
+COPY --from=build /app/publish .
+
+# Expõe a porta padrão do Koyeb e container .NET (8080)
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 
-ENTRYPOINT ["dotnet", "PortalIRibeiro.API.dll"]
+# Executa diretamente o binário nativo compilado (sem o comando 'dotnet')
+ENTRYPOINT ["./PortalIRibeiro.API"]
