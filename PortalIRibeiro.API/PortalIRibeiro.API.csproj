@@ -4,9 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- Habilita os Interceptors necessários pelo Dapper.AOT -->
-    <InterceptorsNamespaces>$(InterceptorsNamespaces);Dapper.AOT</InterceptorsNamespaces>
-    <EnableDapperAot>true</EnableDapperAot>
     
     <PublishAot>true</PublishAot>
 
@@ -39,9 +36,6 @@
     <PackageReference Include="StackExchange.Redis" Version="3.0.0" />
     <PackageReference Include="System.ServiceModel.Syndication" Version="10.0.9" />
     <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
-
-    <!-- Não copia os arquivos appsettings para a publicação -->
-    <Content Update="appsettings*.json" CopyToPublishDirectory="Never" />
     <PackageReference Include="Npgsql" Version="10.0.3" />
   </ItemGroup>
 
@@ -50,11 +44,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </None>
-    
-    <!-- Habilita a cópia dos appsettings para a pasta de Publish -->
-    <Content Update="appsettings*.json" CopyToPublishDirectory="Always" />
 
-    <None Update="Features\Iris\Context\iris_instruction.md">
+    <None Update="Features/Iris/Context/iris_instruction.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </None>
