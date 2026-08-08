@@ -1,5 +1,9 @@
-﻿@inherits LayoutComponentBase
+﻿@using PortalIRibeiro.FrontEnd.Services
+
+@inherits LayoutComponentBase
 @inject IJSRuntime JS
+@inject ApiService ApiService
+@inject NavigationManager Navigation
 
 <div id="page">
     <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
@@ -46,6 +50,16 @@
     // Controla se o menu mobile está colapsado (fechado)
     private bool collapseNavMenu = true;
 
+    protected override async Task OnInitializedAsync()
+    {
+        // Captura a rota relativa acessada (ex: "/", "/portfolio")
+        var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        var pagina = string.IsNullOrEmpty(relativePath) ? "/" : $"/{relativePath}";
+
+        // Disparo "fire-and-forget" para registrar telemetria sem travar a renderização
+        _ = ApiService.RegistrarVisitaAsync(pagina);
+    }
+
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
@@ -57,4 +71,6 @@
         collapseNavMenu = true; // Fecha o menu hambúrguer
         await JS.InvokeVoidAsync("blazorScrollToId", elementId); // Executa o scroll
     }
+
+    
 }

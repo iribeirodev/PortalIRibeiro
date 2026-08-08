@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using PortalIRibeiro.API.Entities;
 using PortalIRibeiro.API.Features.Contato;
 using PortalIRibeiro.API.Features.Iris;
+using PortalIRibeiro.API.Features.Telemetria;
 using PortalIRibeiro.API.Infrastructure.Middleware;
 
 namespace PortalIRibeiro.API.Infrastructure.Serialization;
@@ -25,6 +26,10 @@ namespace PortalIRibeiro.API.Infrastructure.Serialization;
 [JsonSerializable(typeof(Projeto[]))]
 [JsonSerializable(typeof(List<Projeto>))]
 [JsonSerializable(typeof(IEnumerable<Projeto>))]
+
+[JsonSerializable(typeof(Visita))]
+[JsonSerializable(typeof(RegistrarVisitaRequest))]
+[JsonSerializable(typeof(GeoIpResponse))]
 public partial class AppJsonContext : JsonSerializerContext
 {
 }

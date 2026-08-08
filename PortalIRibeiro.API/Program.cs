@@ -1,14 +1,14 @@
+using StackExchange.Redis;
+using DotNetEnv;
 using PortalIRibeiro.API.Features.Backoffice;
 using PortalIRibeiro.API.Features.Iris;
 using PortalIRibeiro.API.Features.Projeto;
+using PortalIRibeiro.API.Features.Telemetria;
 using PortalIRibeiro.API.Infrastructure.Data;
 using PortalIRibeiro.API.Infrastructure.Middleware;
 using PortalIRibeiro.API.Infrastructure.Repositories.Impl;
 using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 using PortalIRibeiro.API.Infrastructure.Serialization;
-using StackExchange.Redis;
-using DotNetEnv;
-
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -27,8 +27,6 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 // Provedores padrão de Log
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-
-builder.Configuration.AddEnvironmentVariables();
 
 // Cache Distribuído (Upstash Redis)
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis") 
@@ -70,8 +68,11 @@ builder.Services.AddScoped<BackofficeHandler>();
 builder.Services.AddScoped<IrisChatHandler>();
 builder.Services.AddHttpClient<GeminiService>();
 builder.Services.AddScoped<ProjetoHandler>();
+builder.Services.AddScoped<TelemetriaHandler>(); // <-- Adicionado
+
 builder.Services.AddScoped<IProjetoRepository, ProjetoRepository>();
 builder.Services.AddScoped<IHistoricoConversaRepository, HistoricoConversaRepository>();
+builder.Services.AddScoped<IVisitaRepository, VisitaRepository>(); // <-- Adicionado
 
 builder.Services.AddAuthorization();
 
@@ -98,5 +99,6 @@ app.MapMethods("/health", ["GET", "HEAD"], () => Results.Ok("Robot is alive!"));
 app.MapProjetoEndpoints();
 app.MapIrisEndpoints();
 app.MapBackofficeEndpoints();
+app.MapTelemetriaEndpoints();
 
 app.Run();

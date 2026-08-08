@@ -45,4 +45,18 @@ public class ApiService
             return new RespostaChat { Texto = "Não foi possível conectar ao servidor da Íris.", SessaoId = sessaoId };
         }
     }
+
+    // Registra o acesso do visitante e métricas de geolocalização no backend
+    public async Task RegistrarVisitaAsync(string pagina = "/")
+    {
+        try
+        {
+            var payload = new { Pagina = pagina };
+            await _http.PostAsJsonAsync("api/telemetria/visita", payload);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao registrar telemetria: {ex.Message}");
+        }
+    }
 }

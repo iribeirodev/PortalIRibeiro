@@ -4,8 +4,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    
-    <PublishAot>true</PublishAot>
+
+    <!-- Desativa otimizações rígidas em modo Debug -->
+    <PublishAot Condition="'$(Configuration)' == 'Debug'">false</PublishAot>
 
     <!-- Suprime o aviso falso-positivo do MaxLengthAttribute em Native AOT -->
     <NoWarn>$(NoWarn);IL2026</NoWarn>
@@ -13,21 +14,30 @@
     <!-- Mantenha InvariantGlobalization falso para o Npgsql -->
     <InvariantGlobalization>false</InvariantGlobalization>
 
-    <!-- Opcional para AOT: Remove símbolos e reduz o tamanho do binário nativo final -->
-    <StripSymbols>true</StripSymbols>
-    <NativeDebugSymbols>false</NativeDebugSymbols>
-    <DebugSymbols>false</DebugSymbols>
-    <DebugType>none</DebugType>
-
     <!-- Impede a geração de manifestos de static web assets -->
     <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
+  <!-- Configurações exclusivas para DESENVOLVIMENTO (Debug Local) -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <!-- Configurações exclusivas para PRODUÇÃO (AOT / Release) -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <StripSymbols>true</StripSymbols>
+    <NativeDebugSymbols>false</NativeDebugSymbols>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
   <ItemGroup>
     <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-    </Content>  
+      <Link>.dockerignore</Link>
+    </Content>
     <PackageReference Include="DotNetEnv" Version="3.2.0" />
     <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
