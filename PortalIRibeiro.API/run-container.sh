@@ -47,7 +47,7 @@ echo "======================================================="
 docker run -d \
   --name "$CONTAINER_NAME" \
   -p $LOCAL_PORT:$DOCKER_PORT \
-  -e ConnectionStrings__DefaultConnection="Host=172.17.0.1;Database=portal;Username=admin;Password=california;SslMode=Disable;TrustServerCertificate=true;" \
+  -e ConnectionStrings__DefaultConnection="Host=172.17.0.1;Database=postgres;Username=admin;Password=california;SearchPath=portal;SSL Mode=Disable;Trust Server Certificate=true;" \
   -e ConnectionStrings__Redis="$ConnectionStrings__Redis" \
   -e Gemini__ApiKey="$Gemini__ApiKey" \
   -e ASPNETCORE_ENVIRONMENT="$ASPNETCORE_ENVIRONMENT" \
