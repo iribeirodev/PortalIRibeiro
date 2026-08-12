@@ -34,18 +34,6 @@ Como funciona?
 * Camada de infraestrutura desacoplada contendo o GeminiService.cs para o gerenciamento de prompts e contexto refinado do currículo.
 * Armazenamento e persistência do histórico completo de conversas em banco para auditoria e controle de sessões via UUID através do Postgres.
 ---
-###  JobScraper & Triagem Automática
-Um ecossistema focado na automação de rotinas para coleta e ingestão de dados externos de mercado.
-
-Onde está o código? A esteira de processamento está localizada em [PortalIRibeiro.API/Features/JobScraper](./PortalIRibeiro.API/Features/JobScraper).
-
-Como funciona?
-
-Execução contínua em segundo plano através de um .NET BackgroundService (RssBackgroundWorker.cs).
-
-Ingestão contínua de feeds RSS (ex: Inoreader, LinkedIn) configurados dinamicamente na tabela rss_feeds.
-
-Camada de cache e triagem para evitar duplicidade de registros através de identificadores únicos globais (GUID), persistindo os dados limpos no Postgres.
 
 ## Tecnologias Utilizadas
 * Back-End: .NET 10 & C# 14 (Web API Core, Background Services, Inversão de Dependência)
