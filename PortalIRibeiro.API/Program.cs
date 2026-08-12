@@ -12,8 +12,11 @@ using PortalIRibeiro.API.Infrastructure.Serialization;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-// Carrega as variáveis do .env no processo do SO
-Env.TraversePath().Load();
+// Carrega as variáveis do .env no processo do SO (apenas em desenvolvimento)
+if (builder.Environment.IsDevelopment())
+{
+    Env.TraversePath().Load();
+}
 
 // Adiciona as variáveis do processo no IConfiguration do ASP.NET Core
 builder.Configuration.AddEnvironmentVariables();
@@ -50,6 +53,11 @@ builder.Services.AddCors(options =>
 });
 
 // Banco de Dados Central (PostgreSQL)
+if (string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("DefaultConnection")))
+{
+    throw new InvalidOperationException("Connection string do PostgreSQL não encontrada.");
+}
+
 builder.Services.AddSingleton<NpgsqlConnectionFactory>();
 
 builder.Services.AddHttpClient();

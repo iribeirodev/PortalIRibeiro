@@ -50,11 +50,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include=".env" Condition="Exists('.env')">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-    </None>
-
     <None Update="Features/Iris/Context/iris_instruction.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>

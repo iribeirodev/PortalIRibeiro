@@ -1,0 +1,10 @@
+#!/bin/sh
+# Scan de segredos antes do commit (requer gitleaks instalado)
+# Ative este hook com: git config core.hooksPath .githooks
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+    echo "gitleaks não encontrado — instale-o para habilitar a proteção local." >&2
+    exit 0
+fi
+
+gitleaks protect --staged --redact --verbose

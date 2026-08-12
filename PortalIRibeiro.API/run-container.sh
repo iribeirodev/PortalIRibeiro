@@ -14,17 +14,22 @@ DOCKER_PORT=8080
 # ============================================================================
 # EXTRAÇÃO AUTOMÁTICA DO ARQUIVO .ENV LOCAL
 # ============================================================================
-# Esse bloco lê o .env real e isola as variáveis sem expor nada no script
+# Lê o .env preservando valores com espaços/quotes e sem expor nada no script
 if [ -f .env ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+    set -a
+    while IFS='=' read -r key value; do
+        case "$key" in ''|\#*) continue ;; esac
+        export "$key=${value//\"/}"
+    done < .env
+    set +a
 else
     echo "Erro: Arquivo .env não encontrado"
     exit 1
 fi
 
 # Ajusta o Host para o Docker se a string apontar para localhost
-DB_CONNECTION=$ConnectionStrings__DefaultConnection
-REDIS_CONNECTION=$(echo $ConnectionStrings__Redis | sed 's/localhost/host.docker.internal/g')
+DB_CONNECTION=$(echo "$ConnectionStrings__DefaultConnection" | sed 's/localhost/host.docker.internal/g')
+REDIS_CONNECTION=$(echo "$ConnectionStrings__Redis" | sed 's/localhost/host.docker.internal/g')
 
 echo "======================================================="
 echo " 1/3: GERANDO NOVA IMAGEM DOCKER (BUILD)"
@@ -47,10 +52,12 @@ echo "======================================================="
 docker run -d \
   --name "$CONTAINER_NAME" \
   -p $LOCAL_PORT:$DOCKER_PORT \
-  -e ConnectionStrings__DefaultConnection="Host=172.17.0.1;Database=portal;Username=admin;Password=california;SslMode=Disable;TrustServerCertificate=true;" \
-  -e ConnectionStrings__Redis="$ConnectionStrings__Redis" \
+  -e ConnectionStrings__DefaultConnection="$DB_CONNECTION" \
+  -e ConnectionStrings__Redis="$REDIS_CONNECTION" \
   -e Gemini__ApiKey="$Gemini__ApiKey" \
   -e ASPNETCORE_ENVIRONMENT="$ASPNETCORE_ENVIRONMENT" \
+  -e GeoIp__BaseUrl="$GeoIp__BaseUrl" \
+  -e GeoIp__FallbackIp="$GeoIp__FallbackIp" \
   $IMAGE_NAME
 
 echo "-------------------------------------------------------"

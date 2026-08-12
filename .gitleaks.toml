@@ -1,0 +1,18 @@
+# Configuração do Gitleaks para o PortalIRibeiro
+title = "PortalIRibeiro gitleaks config"
+
+[extend]
+# Mantém as regras padrão de detecção do gitleaks
+useDefault = true
+
+[allowlist]
+description = "Exemplos e placeholders documentados (nunca segredos reais)"
+paths = [
+    '''docs/.env.sample''',
+]
+regexes = [
+    '''SUA_SENHA_AQUI''',
+    '''SUA_CHAVE_API_DO_GEMINI_AQUI''',
+    '''ENDERECO_DO_REDIS_OU_UPSTASH''',
+    '''SEU_POSTGRES_REACHABLE''',
+]
