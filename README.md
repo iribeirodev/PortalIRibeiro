@@ -42,6 +42,8 @@ flowchart LR
 
 **Fluxo:** o usuário acessa o HTML estático servido pela Vercel. O laboratório é alimentado no build e revalidado a cada 1h (ISR) chamando a API; chat e telemetria são chamadas **client-side direto à API da Koyeb** (CORS liberado), sem intermediário. A API orquestra o RAG no Gemini, persiste histórico/visitas na Neon e usa Redis para cache e dedup de telemetria.
 
+![Fluxo de dados da arquitetura](assets/fluxo-animado01.gif)
+
 ## Módulos em Destaque
 
 ### Assistente Inteligente Íris
