@@ -18,6 +18,7 @@ PortalIRibeiro/
 ```
 
 ```mermaid
+%%{init: {'theme': 'neutral'}}%%
 flowchart LR
     U([Visitante / Recrutador]) -->|HTTPS| V
 
@@ -27,22 +28,28 @@ flowchart LR
     end
 
     subgraph K["Koyeb (Docker)"]
-        A["PortalIRibeiro.API<br/>.NET 10 & C# 14"]
+        A["PortalIRibeiro.API<br/>.NET 10 & C# 14"]:::core
     end
 
     F --> S
     S --> F
     F -. "CSR direto do navegador<br/>POST chat / POST telemetria" .-> A
     F -. "ISR (revalida 1h)<br/>GET projetos" .-> A
-    A --> PG[("Neon<br/>PostgreSQL Serverless")]
-    A --> RD[("Upstash<br/>Redis")]
-    A --> G["Google Gemini API<br/>(RAG do currículo)"]
-    A --> I["ip-api.com<br/>(geolocalização)"]
+    A --> PG[("Neon<br/>PostgreSQL Serverless")]:::core
+    A --> RD[("Upstash<br/>Redis")]:::core
+    A --> G["Google Gemini API<br/>(RAG do currículo)"]:::ext
+    A --> I["ip-api.com<br/>(geolocalização)"]:::ext
+
+    style V fill:#ffffff,stroke:#e5e7eb,stroke-width:1px
+    style K fill:#ffffff,stroke:#e5e7eb,stroke-width:1px
+
+    classDef core fill:#f3f4f6,stroke:#9ca3af,stroke-width:2px,color:#111827;
+    classDef ext fill:#ffffff,stroke:#d1d5db,stroke-width:1px,color:#6b7280;
 ```
 
 **Fluxo:** o usuário acessa o HTML estático servido pela Vercel. O laboratório é alimentado no build e revalidado a cada 1h (ISR) chamando a API; chat e telemetria são chamadas **client-side direto à API da Koyeb** (CORS liberado), sem intermediário. A API orquestra o RAG no Gemini, persiste histórico/visitas na Neon e usa Redis para cache e dedup de telemetria.
 
-![Fluxo de dados da arquitetura](assets/fluxo-animado01.gif)
+![Fluxo de dados da arquitetura](assets/diagrama-0.gif)
 
 ## Módulos em Destaque
 
@@ -84,7 +91,7 @@ sequenceDiagram
     F->>U: renderiza resposta em markdown
 ```
 
-![Fluxo de perguntas e respostas da Íris](assets/fluxo-animado02.gif)
+![Fluxo de perguntas e respostas da Íris](assets/diagrama-1.gif)
 
 ---
 
