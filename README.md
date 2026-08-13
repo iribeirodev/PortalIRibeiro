@@ -17,36 +17,6 @@ PortalIRibeiro/
 └── README.md                 # Documentação principal
 ```
 
-```mermaid
-%%{init: {'theme': 'neutral'}}%%
-flowchart LR
-    U([Visitante / Recrutador]) -->|HTTPS| V
-
-    subgraph V["Vercel (plano Hobby)"]
-        F["Frontend Next.js<br/>SSG + ISR + CSR"]
-        S["HTML estático + assets<br/>via CDN"]
-    end
-
-    subgraph K["Koyeb (Docker)"]
-        A["PortalIRibeiro.API<br/>.NET 10 & C# 14"]:::core
-    end
-
-    F --> S
-    S --> F
-    F -. "CSR direto do navegador<br/>POST chat / POST telemetria" .-> A
-    F -. "ISR (revalida 1h)<br/>GET projetos" .-> A
-    A --> PG[("Neon<br/>PostgreSQL Serverless")]:::core
-    A --> RD[("Upstash<br/>Redis")]:::core
-    A --> G["Google Gemini API<br/>(RAG do currículo)"]:::ext
-    A --> I["ip-api.com<br/>(geolocalização)"]:::ext
-
-    style V fill:#ffffff,stroke:#e5e7eb,stroke-width:1px
-    style K fill:#ffffff,stroke:#e5e7eb,stroke-width:1px
-
-    classDef core fill:#f3f4f6,stroke:#9ca3af,stroke-width:2px,color:#111827;
-    classDef ext fill:#ffffff,stroke:#d1d5db,stroke-width:1px,color:#6b7280;
-```
-
 **Fluxo:** o usuário acessa o HTML estático servido pela Vercel. O laboratório é alimentado no build e revalidado a cada 1h (ISR) chamando a API; chat e telemetria são chamadas **client-side direto à API da Koyeb** (CORS liberado), sem intermediário. A API orquestra o RAG no Gemini, persiste histórico/visitas na Neon e usa Redis para cache e dedup de telemetria.
 
 ![Fluxo de dados da arquitetura](assets/diagrama-0.gif)
@@ -69,27 +39,6 @@ Como funciona?
 * Armazenamento e persistência do histórico completo de conversas em banco para auditoria e controle de sessões via UUID através do Postgres.
 
 ### Fluxo de processamento de perguntas e respostas
-
-```mermaid
-sequenceDiagram
-    participant U as Visitante
-    participant F as Frontend Next.js (CSR)
-    participant A as API .NET (Koyeb)
-    participant RD as Redis (Upstash)
-    participant G as Google Gemini
-    participant PG as Postgres (Neon)
-
-    U->>F: digita a pergunta no chat
-    F->>A: POST /api/iris/chat {sessaoId, texto}
-    A->>A: IrisChatHandler orquestra
-    A->>RD: GET curriculo:itamar (contexto RAG)
-    RD-->>A: currículo em texto (ou fallback)
-    A->>G: systemInstruction + contexto RAG + pergunta
-    G-->>A: resposta gerada
-    A->>PG: INSERT historico_conversas (auditoria)
-    A-->>F: {texto, sessaoId}
-    F->>U: renderiza resposta em markdown
-```
 
 ![Fluxo de perguntas e respostas da Íris](assets/diagrama-1.gif)
 
