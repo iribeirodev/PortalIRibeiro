@@ -37,11 +37,43 @@ Como funciona?
 
 ## Tecnologias Utilizadas
 * Back-End: .NET 10 & C# 14 (Web API Core, Background Services, Inversão de Dependência)
-* Front-End: Next.js (App Router + TypeScript) com modelo híbrido SSG/ISR/CSR.
+* Front-End: Next.js (App Router + TypeScript) com modelo híbrido SSG/ISR/CSR — detalhado em [Frontend (Next.js) — Configuração e Renderização](#frontend-nextjs--configuração-e-renderização).
 * Banco de Dados Cloud: PostgreSQL Serverless hospedado na Neon.
 * Cache & Mensageria: Redis gerenciado em nuvem via Upstash.
 * Hospedagem API: Aplicação containerizada com Docker e implantada na Koyeb.
 * Hospedagem Front: Vercel (plano Hobby).
+
+## Frontend (Next.js) — Configuração e Renderização
+
+O frontend usa o **Next.js App Router** com um modelo de renderização **híbrido**, desenhado para combinar SEO, performance e custo zero dentro do plano gratuito da Vercel.
+
+### Estratégia de renderização por camada
+
+| Camada da página | Modo | Onde |
+|---|---|---|
+| Home — Hero, About, Services, Contact | **SSG** (prerenderizado no build) | `app/page.tsx` + `components/{hero,about,services,contact}.tsx` |
+| Laboratório (projetos) | **ISR** (SSG + revalidação a cada 1h) | `components/laboratory.tsx` via `getProjetos({ revalidate: 3600 })` |
+| Chat Íris, Telemetria, Navbar | **CSR** (componentes client) | `components/{resume-assistant,telemetry,navbar}.tsx` |
+| Loading / Not Found | SSG | `app/loading.tsx`, `app/not-found.tsx` |
+
+### Como as partes se conectam
+
+- **SSG (Server Components):** a home é 100% pré-renderizada no `next build` e entregue como HTML estático via CDN — carregamento instantâneo e SEO completo.
+- **ISR no Laboratório:** a listagem de projetos é buscada da API (`GET api/backoffice/projetos`) no momento do build e revalidada em *background* a cada hora, mantendo o conteúdo fresco sem regenerar a página a cada visita.
+- **CSR:** chat, telemetria e menu (hambúrguer) são componentes `"use client"`. O chat chama `POST api/iris/chat` e a telemetria `POST api/telemetria/visita` **direto do navegador contra a API da Koyeb** (CORS liberado). Não há API Routes nem Server Actions como proxy — o plano Hobby da Vercel não cobra por essas requisições.
+- **Imagens:** `<img>` nativo em vez de `next/image` para não esbarrar nos limites de otimização de imagem do plano (os avisos `@next/next/no-img-element` no lint são intencionais).
+- **Markdown:** as respostas do chat são renderizadas com `react-markdown` + `remark-gfm` (`lib/markdown.tsx`), reproduzindo a mesma saída que o Blazor produzia com Markdig.
+- **Estado local:** o limite diário do chat (90/100 perguntas) fica no `localStorage` sob a chave `iris_usage_tracker`, mantendo compatibilidade com a versão anterior do portal.
+- **Telemetria:** o registro de visita é protegido contra dupla execução (StrictMode do React em dev) e a própria API deduplica por IP + página num cache Redis de 15 minutos.
+
+### Stack do frontend
+
+| Camada | Tecnologia |
+|---|---|
+| Framework | Next.js 16 (App Router) + React 19 + TypeScript |
+| UI | Bootstrap 5 (via npm) + CSS customizado em `app/globals.css` |
+| Dados | `lib/api.ts` (fetch com timeout de 15s), `lib/types.ts` |
+| Markdown | `react-markdown` + `remark-gfm` |
 
 ## Notas sobre a execução local do projeto
 
@@ -68,4 +100,4 @@ O framework é auto-detectado (Next.js). No projeto da Vercel, defina a variáve
 NEXT_PUBLIC_API_BASE_URL=https://portaliribeiro-api.koyeb.app/
 ```
 
-O modelo de renderização híbrido (SSG + ISR de 1h no laboratório + CSR no chat/telemetria) cabe com folga no plano Hobby: o chat e a telemetria chamam a API da Koyeb direto do navegador (CORS liberado), sem consumir funções da Vercel.
+> Importante: variáveis `NEXT_PUBLIC_*` são embutidas no `next build` — após alterá-las é preciso **redeploy**. O modelo híbrido (SSG + ISR + CSR) cabe com folga no plano Hobby, conforme detalhado na seção de [renderização](#frontend-nextjs--configuração-e-renderização).
