@@ -17,6 +17,31 @@ PortalIRibeiro/
 └── README.md                 # Documentação principal
 ```
 
+```mermaid
+flowchart LR
+    U([Visitante / Recrutador]) -->|HTTPS| V
+
+    subgraph V["Vercel (plano Hobby)"]
+        F["Frontend Next.js<br/>SSG + ISR + CSR"]
+        S["HTML estático + assets<br/>via CDN"]
+    end
+
+    subgraph K["Koyeb (Docker)"]
+        A["PortalIRibeiro.API<br/>.NET 10 & C# 14"]
+    end
+
+    F --> S
+    S --> F
+    F -. "CSR direto do navegador<br/>POST chat / POST telemetria" .-> A
+    F -. "ISR (revalida 1h)<br/>GET projetos" .-> A
+    A --> PG[("Neon<br/>PostgreSQL Serverless")]
+    A --> RD[("Upstash<br/>Redis")]
+    A --> G["Google Gemini API<br/>(RAG do currículo)"]
+    A --> I["ip-api.com<br/>(geolocalização)"]
+```
+
+**Fluxo:** o usuário acessa o HTML estático servido pela Vercel. O laboratório é alimentado no build e revalidado a cada 1h (ISR) chamando a API; chat e telemetria são chamadas **client-side direto à API da Koyeb** (CORS liberado), sem intermediário. A API orquestra o RAG no Gemini, persiste histórico/visitas na Neon e usa Redis para cache e dedup de telemetria.
+
 ## Módulos em Destaque
 
 ### Assistente Inteligente Íris
