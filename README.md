@@ -84,6 +84,8 @@ sequenceDiagram
     F->>U: renderiza resposta em markdown
 ```
 
+![Fluxo de perguntas e respostas da Íris](assets/fluxo-animado02.gif)
+
 ---
 
 ## Tecnologias Utilizadas
