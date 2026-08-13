@@ -1,4 +1,3 @@
 <Solution>
   <Project Path="PortalIRibeiro.API/PortalIRibeiro.API.csproj" />
-  <Project Path="PortalIRibeiro.FrontEnd/PortalIRibeiro.FrontEnd.csproj" />
 </Solution>

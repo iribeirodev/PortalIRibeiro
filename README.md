@@ -11,8 +11,8 @@ A solução é totalmente desacoplada, separando o ecossistema de APIs do front-
 ```text
 PortalIRibeiro/
 ├── docs/                     # Scripts de banco (DDL/Schema) e templates de ambiente (.env.sample)
-│── PortalIRibeiro.API/       # Lógica de negócio, Web API Core, Workers e integrações
-│── PortalIRibeiro.FrontEnd/  # Interface SPA interativa em Blazor WebAssembly (WASM)
+├── PortalIRibeiro.API/       # Lógica de negócio, Web API Core, Workers e integrações
+├── frontend/                 # Interface SPA em Next.js (App Router + TypeScript)
 ├── PortalIRibeiro.slnx       # Arquivo de solução unificado do .NET
 └── README.md                 # Documentação principal
 ```
@@ -37,15 +37,35 @@ Como funciona?
 
 ## Tecnologias Utilizadas
 * Back-End: .NET 10 & C# 14 (Web API Core, Background Services, Inversão de Dependência)
-* Front-End: Blazor WebAssembly (WASM) com componentes interativos e Pixel Art customizada.
+* Front-End: Next.js (App Router + TypeScript) com modelo híbrido SSG/ISR/CSR.
 * Banco de Dados Cloud: PostgreSQL Serverless hospedado na Neon.
 * Cache & Mensageria: Redis gerenciado em nuvem via Upstash.
 * Hospedagem API: Aplicação containerizada com Docker e implantada na Koyeb.
-* Hospedagem Front: Distribuição estática global via Netlify.
+* Hospedagem Front: Vercel (plano Hobby).
 
 ## Notas sobre a execução local do projeto
 
 Pré-requisitos
-* SDK do .NET 10 instalado.
+* SDK do .NET 10 instalado (para a API).
+* Node.js 20+ (para o frontend).
 * Docker e Docker Compose ativos na máquina (ambiente Linux testado em base Ubuntu).
 * Rider IDE ou um editor de código de sua preferência (como VS Code) com suporte a C#.
+
+### Frontend (Next.js)
+
+```bash
+cd frontend
+cp .env.example .env.local   # ajuste a NEXT_PUBLIC_API_BASE_URL se necessário
+npm install
+npm run dev                  # http://localhost:3000
+```
+
+### Deploy na Vercel
+
+O framework é auto-detectado (Next.js). No projeto da Vercel, defina a variável de ambiente de produção:
+
+```
+NEXT_PUBLIC_API_BASE_URL=https://portaliribeiro-api.koyeb.app/
+```
+
+O modelo de renderização híbrido (SSG + ISR de 1h no laboratório + CSR no chat/telemetria) cabe com folga no plano Hobby: o chat e a telemetria chamam a API da Koyeb direto do navegador (CORS liberado), sem consumir funções da Vercel.

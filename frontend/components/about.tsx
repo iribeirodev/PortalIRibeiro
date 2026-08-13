@@ -1,0 +1,37 @@
+export function AboutSection() {
+  return (
+    <section className="about" id="about">
+      <div className="container-fluid px-4 px-lg-5">
+        <div className="about-container">
+          <div className="about-image">
+            <img src="/images/itamar-ribeiro.jpg" alt="Itamar Ribeiro" />
+          </div>
+          <div className="about-content">
+            <h2>Sobre Mim</h2>
+            <p>
+              Sou um desenvolvedor Full Stack Sênior apaixonado por criar
+              soluções inovadoras e de alta qualidade. Com experiência em
+              diversos projetos, trago expertise em desenvolvimento web
+              moderno, arquitetura de software e boas práticas de programação.
+            </p>
+            <p>
+              Minha jornada em tecnologia é marcada por constante aprendizado
+              e dedicação em entregar resultados excepcionais. Combino
+              habilidades técnicas sólidas com uma visão estratégica para
+              transformar ideias em produtos funcionais e escaláveis.
+            </p>
+            <div className="about-skills">
+              <h3>Competências</h3>
+              <ul>
+                <li>Full Stack Development</li>
+                <li>C# / .NET / ASP.NET</li>
+                <li>Angular / React</li>
+                <li>Arquitetura de Software</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
