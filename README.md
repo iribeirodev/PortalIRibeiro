@@ -58,6 +58,30 @@ Como funciona?
 * Implementação de RAG (Retrieval-Augmented Generation) consumindo a API oficial do Google Gemini.
 * Camada de infraestrutura desacoplada contendo o GeminiService.cs para o gerenciamento de prompts e contexto refinado do currículo.
 * Armazenamento e persistência do histórico completo de conversas em banco para auditoria e controle de sessões via UUID através do Postgres.
+
+### Fluxo de processamento de perguntas e respostas
+
+```mermaid
+sequenceDiagram
+    participant U as Visitante
+    participant F as Frontend Next.js (CSR)
+    participant A as API .NET (Koyeb)
+    participant RD as Redis (Upstash)
+    participant G as Google Gemini
+    participant PG as Postgres (Neon)
+
+    U->>F: digita a pergunta no chat
+    F->>A: POST /api/iris/chat {sessaoId, texto}
+    A->>A: IrisChatHandler orquestra
+    A->>RD: GET curriculo:itamar (contexto RAG)
+    RD-->>A: currículo em texto (ou fallback)
+    A->>G: systemInstruction + contexto RAG + pergunta
+    G-->>A: resposta gerada
+    A->>PG: INSERT historico_conversas (auditoria)
+    A-->>F: {texto, sessaoId}
+    F->>U: renderiza resposta em markdown
+```
+
 ---
 
 ## Tecnologias Utilizadas
