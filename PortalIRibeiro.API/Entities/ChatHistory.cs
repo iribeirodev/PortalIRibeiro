@@ -6,7 +6,7 @@ namespace PortalIRibeiro.API.Entities;
 /// <summary>
 /// Entity that represents the conversation history between the user and the Iris AI, storing questions, answers and interaction metadata.
 /// </summary>
-[Table("historico_conversas")]
+[Table("chat_history")]
 public class ChatHistory
 {
     [Key]
@@ -14,17 +14,17 @@ public class ChatHistory
     public long Id { get; set; } // BIGINT no Postgres
 
     [Required]
-    [Column("sessao_id")]
+    [Column("session_id")]
     public Guid SessionId { get; set; }
 
     [Required]
-    [Column("pergunta_usuario")]
+    [Column("user_question")]
     public string UserQuestion { get; set; } = string.Empty;
 
     [Required]
-    [Column("resposta_ia")]
+    [Column("ai_response")]
     public string AiResponse { get; set; } = string.Empty;
 
-    [Column("data_interacao")]
+    [Column("interaction_date")]
     public DateTimeOffset InteractionDate { get; set; } = DateTimeOffset.UtcNow;
 }

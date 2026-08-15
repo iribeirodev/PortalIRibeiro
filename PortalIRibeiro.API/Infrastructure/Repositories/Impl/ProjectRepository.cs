@@ -12,16 +12,16 @@ public class ProjectRepository(NpgsqlConnectionFactory connectionFactory) : IPro
         const string sql = """
         SELECT
             id,
-            titulo,
-            descricao,
-            COALESCE(url_imagem, '') AS url_imagem,
-            COALESCE(url_github, '') AS url_github,
-            COALESCE(url_demonstracao, '') AS url_demonstracao,
-            ativo,
-            data_criacao
-        FROM portal.projetos
-        WHERE ativo = true
-        ORDER BY data_criacao DESC
+            title,
+            description,
+            COALESCE(image_url, '') AS image_url,
+            COALESCE(github_url, '') AS github_url,
+            COALESCE(demo_url, '') AS demo_url,
+            is_active,
+            created_at
+        FROM portal.projects
+        WHERE is_active = true
+        ORDER BY created_at DESC
         """;
 
         await using var connection = connectionFactory.CreateConnection();
@@ -37,13 +37,13 @@ public class ProjectRepository(NpgsqlConnectionFactory connectionFactory) : IPro
             projects.Add(new Project
             {
                 Id = reader.GetInt32(reader.GetOrdinal("id")),
-                Title = reader.GetString(reader.GetOrdinal("titulo")),
-                Description = reader.GetString(reader.GetOrdinal("descricao")),
-                ImageUrl = reader.GetString(reader.GetOrdinal("url_imagem")),
-                GitHubUrl = reader.GetString(reader.GetOrdinal("url_github")),
-                DemoUrl = reader.GetString(reader.GetOrdinal("url_demonstracao")),
-                IsActive = reader.GetBoolean(reader.GetOrdinal("ativo")),
-                CreatedAt = reader.GetDateTime(reader.GetOrdinal("data_criacao"))
+                Title = reader.GetString(reader.GetOrdinal("title")),
+                Description = reader.GetString(reader.GetOrdinal("description")),
+                ImageUrl = reader.GetString(reader.GetOrdinal("image_url")),
+                GitHubUrl = reader.GetString(reader.GetOrdinal("github_url")),
+                DemoUrl = reader.GetString(reader.GetOrdinal("demo_url")),
+                IsActive = reader.GetBoolean(reader.GetOrdinal("is_active")),
+                CreatedAt = reader.GetDateTime(reader.GetOrdinal("created_at"))
             });
         }
 

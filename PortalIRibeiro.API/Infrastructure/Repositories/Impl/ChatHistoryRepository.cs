@@ -13,8 +13,8 @@ public class ChatHistoryRepository(NpgsqlConnectionFactory connectionFactory) : 
         await connection.OpenAsync(cancellationToken);
 
         const string sql = @"
-            INSERT INTO portal.historico_conversas (
-                sessao_id, pergunta_usuario, resposta_ia, data_interacao)
+            INSERT INTO portal.chat_history (
+                session_id, user_question, ai_response, interaction_date)
             VALUES (
                 @SessionId, @UserQuestion, @AiResponse, @InteractionDate)";
 

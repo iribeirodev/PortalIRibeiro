@@ -19,16 +19,16 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-DROP INDEX IF EXISTS portal.idx_projetos_ativo_data;
-DROP INDEX IF EXISTS portal.idx_conversas_sessao;
-ALTER TABLE IF EXISTS ONLY portal.projetos DROP CONSTRAINT IF EXISTS projetos_pkey;
-ALTER TABLE IF EXISTS ONLY portal.historico_conversas DROP CONSTRAINT IF EXISTS historico_conversas_pkey;
-ALTER TABLE IF EXISTS portal.projetos ALTER COLUMN id DROP DEFAULT;
-ALTER TABLE IF EXISTS portal.historico_conversas ALTER COLUMN id DROP DEFAULT;
-DROP SEQUENCE IF EXISTS portal.projetos_id_seq;
-DROP TABLE IF EXISTS portal.projetos;
-DROP SEQUENCE IF EXISTS portal.historico_conversas_id_seq;
-DROP TABLE IF EXISTS portal.historico_conversas;
+DROP INDEX IF EXISTS portal.idx_projects_active;
+DROP INDEX IF EXISTS portal.idx_chat_history_session;
+ALTER TABLE IF EXISTS ONLY portal.projects DROP CONSTRAINT IF EXISTS projects_pkey;
+ALTER TABLE IF EXISTS ONLY portal.chat_history DROP CONSTRAINT IF EXISTS chat_history_pkey;
+ALTER TABLE IF EXISTS portal.projects ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS portal.chat_history ALTER COLUMN id DROP DEFAULT;
+DROP SEQUENCE IF EXISTS portal.projects_id_seq;
+DROP TABLE IF EXISTS portal.projects;
+DROP SEQUENCE IF EXISTS portal.chat_history_id_seq;
+DROP TABLE IF EXISTS portal.chat_history;
 DROP SCHEMA IF EXISTS portal;
 --
 -- Name: portal; Type: SCHEMA; Schema: -; Owner: admin
@@ -44,25 +44,25 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: historico_conversas; Type: TABLE; Schema: portal; Owner: admin
+-- Name: chat_history; Type: TABLE; Schema: portal; Owner: admin
 --
 
-CREATE TABLE portal.historico_conversas (
+CREATE TABLE portal.chat_history (
     id bigint NOT NULL,
-    sessao_id uuid NOT NULL,
-    pergunta_usuario text NOT NULL,
-    resposta_ia text NOT NULL,
-    data_interacao timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+    session_id uuid NOT NULL,
+    user_question text NOT NULL,
+    ai_response text NOT NULL,
+    interaction_date timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
-ALTER TABLE portal.historico_conversas OWNER TO admin;
+ALTER TABLE portal.chat_history OWNER TO admin;
 
 --
--- Name: historico_conversas_id_seq; Type: SEQUENCE; Schema: portal; Owner: admin
+-- Name: chat_history_id_seq; Type: SEQUENCE; Schema: portal; Owner: admin
 --
 
-CREATE SEQUENCE portal.historico_conversas_id_seq
+CREATE SEQUENCE portal.chat_history_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -70,39 +70,39 @@ CREATE SEQUENCE portal.historico_conversas_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE portal.historico_conversas_id_seq OWNER TO admin;
+ALTER SEQUENCE portal.chat_history_id_seq OWNER TO admin;
 
 --
--- Name: historico_conversas_id_seq; Type: SEQUENCE OWNED BY; Schema: portal; Owner: admin
+-- Name: chat_history_id_seq; Type: SEQUENCE OWNED BY; Schema: portal; Owner: admin
 --
 
-ALTER SEQUENCE portal.historico_conversas_id_seq OWNED BY portal.historico_conversas.id;
+ALTER SEQUENCE portal.chat_history_id_seq OWNED BY portal.chat_history.id;
 
 
 --
--- Name: projetos; Type: TABLE; Schema: portal; Owner: admin
+-- Name: projects; Type: TABLE; Schema: portal; Owner: admin
 --
 
-CREATE TABLE portal.projetos (
+CREATE TABLE portal.projects (
     id integer NOT NULL,
-    titulo character varying(150) NOT NULL,
-    descricao text NOT NULL,
-    tecnologias character varying[] NOT NULL,
-    url_imagem character varying(255),
-    url_github character varying(255),
-    url_demonstracao character varying(255),
-    data_criacao timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    ativo boolean DEFAULT true
+    title character varying(150) NOT NULL,
+    description text NOT NULL,
+    technologies character varying[] NOT NULL,
+    image_url character varying(255),
+    github_url character varying(255),
+    demo_url character varying(255),
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    is_active boolean DEFAULT true
 );
 
 
-ALTER TABLE portal.projetos OWNER TO admin;
+ALTER TABLE portal.projects OWNER TO admin;
 
 --
--- Name: projetos_id_seq; Type: SEQUENCE; Schema: portal; Owner: admin
+-- Name: projects_id_seq; Type: SEQUENCE; Schema: portal; Owner: admin
 --
 
-CREATE SEQUENCE portal.projetos_id_seq
+CREATE SEQUENCE portal.projects_id_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -111,88 +111,88 @@ CREATE SEQUENCE portal.projetos_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE portal.projetos_id_seq OWNER TO admin;
+ALTER SEQUENCE portal.projects_id_seq OWNER TO admin;
 
 --
--- Name: projetos_id_seq; Type: SEQUENCE OWNED BY; Schema: portal; Owner: admin
+-- Name: projects_id_seq; Type: SEQUENCE OWNED BY; Schema: portal; Owner: admin
 --
 
-ALTER SEQUENCE portal.projetos_id_seq OWNED BY portal.projetos.id;
-
-
---
--- Name: historico_conversas id; Type: DEFAULT; Schema: portal; Owner: admin
---
-
-ALTER TABLE ONLY portal.historico_conversas ALTER COLUMN id SET DEFAULT nextval('portal.historico_conversas_id_seq'::regclass);
+ALTER SEQUENCE portal.projects_id_seq OWNED BY portal.projects.id;
 
 
 --
--- Name: projetos id; Type: DEFAULT; Schema: portal; Owner: admin
+-- Name: chat_history id; Type: DEFAULT; Schema: portal; Owner: admin
 --
 
-ALTER TABLE ONLY portal.projetos ALTER COLUMN id SET DEFAULT nextval('portal.projetos_id_seq'::regclass);
+ALTER TABLE ONLY portal.chat_history ALTER COLUMN id SET DEFAULT nextval('portal.chat_history_id_seq'::regclass);
 
 
 --
--- Data for Name: historico_conversas; Type: TABLE DATA; Schema: portal; Owner: admin
+-- Name: projects id; Type: DEFAULT; Schema: portal; Owner: admin
 --
 
-COPY portal.historico_conversas (id, sessao_id, pergunta_usuario, resposta_ia, data_interacao) FROM stdin;
+ALTER TABLE ONLY portal.projects ALTER COLUMN id SET DEFAULT nextval('portal.projects_id_seq'::regclass);
+
+
+--
+-- Data for Name: chat_history; Type: TABLE DATA; Schema: portal; Owner: admin
+--
+
+COPY portal.chat_history (id, session_id, user_question, ai_response, interaction_date) FROM stdin;
 \.
 
 
 --
--- Data for Name: projetos; Type: TABLE DATA; Schema: portal; Owner: admin
+-- Data for Name: projects; Type: TABLE DATA; Schema: portal; Owner: admin
 --
 
-COPY portal.projetos (id, titulo, descricao, tecnologias, url_imagem, url_github, url_demonstracao, data_criacao, ativo) FROM stdin;
+COPY portal.projects (id, title, description, technologies, image_url, github_url, demo_url, created_at, is_active) FROM stdin;
 1	Portal IRibeiro / Íris	Assistente inteligente de IA focado na leitura dinâmica de currículo e trajetórias profissionais, utilizando tecnologia RAG.	{".NET 10","C# 14",Blazor,"Upstash Redis",RAG}	/images/laboratorio/resume-assist.jpeg	https://github.com/iribeirodev/PortalIRibeiro#assistente-inteligente-%C3%ADris		2026-06-27 21:14:51.650179+00	t
 \.
 
 
 --
--- Name: historico_conversas_id_seq; Type: SEQUENCE SET; Schema: portal; Owner: admin
+-- Name: chat_history_id_seq; Type: SEQUENCE SET; Schema: portal; Owner: admin
 --
 
-SELECT pg_catalog.setval('portal.historico_conversas_id_seq', 1, false);
-
-
---
--- Name: projetos_id_seq; Type: SEQUENCE SET; Schema: portal; Owner: admin
---
-
-SELECT pg_catalog.setval('portal.projetos_id_seq', 1, true);
+SELECT pg_catalog.setval('portal.chat_history_id_seq', 1, false);
 
 
 --
--- Name: historico_conversas historico_conversas_pkey; Type: CONSTRAINT; Schema: portal; Owner: admin
+-- Name: projects_id_seq; Type: SEQUENCE SET; Schema: portal; Owner: admin
 --
 
-ALTER TABLE ONLY portal.historico_conversas
-    ADD CONSTRAINT historico_conversas_pkey PRIMARY KEY (id);
-
-
---
--- Name: projetos projetos_pkey; Type: CONSTRAINT; Schema: portal; Owner: admin
---
-
-ALTER TABLE ONLY portal.projetos
-    ADD CONSTRAINT projetos_pkey PRIMARY KEY (id);
+SELECT pg_catalog.setval('portal.projects_id_seq', 1, true);
 
 
 --
--- Name: idx_conversas_sessao; Type: INDEX; Schema: portal; Owner: admin
+-- Name: chat_history chat_history_pkey; Type: CONSTRAINT; Schema: portal; Owner: admin
 --
 
-CREATE INDEX idx_conversas_sessao ON portal.historico_conversas USING btree (sessao_id);
+ALTER TABLE ONLY portal.chat_history
+    ADD CONSTRAINT chat_history_pkey PRIMARY KEY (id);
 
 
 --
--- Name: idx_projetos_ativo_data; Type: INDEX; Schema: portal; Owner: admin
+-- Name: projects projects_pkey; Type: CONSTRAINT; Schema: portal; Owner: admin
 --
 
-CREATE INDEX idx_projetos_ativo_data ON portal.projetos USING btree (ativo, data_criacao DESC);
+ALTER TABLE ONLY portal.projects
+    ADD CONSTRAINT projects_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_chat_history_session; Type: INDEX; Schema: portal; Owner: admin
+--
+
+CREATE INDEX idx_chat_history_session ON portal.chat_history USING btree (session_id);
+
+
+--
+-- Name: idx_projects_active; Type: INDEX; Schema: portal; Owner: admin
+--
+
+CREATE INDEX idx_projects_active ON portal.projects USING btree (created_at DESC) WHERE (is_active = true);
 
 
 --
