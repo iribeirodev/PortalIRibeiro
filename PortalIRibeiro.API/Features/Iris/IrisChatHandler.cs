@@ -5,39 +5,39 @@ using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 namespace PortalIRibeiro.API.Features.Iris;
 
 /// <summary>
-/// Classe responsável por orquestrar a interação com a Íris, incluindo a geração de respostas e o registro de conversas no banco de dados.
+/// Class responsible for orchestrating the interaction with Iris, including response generation and storing conversations in the database.
 /// </summary>
-/// <param name="historicoConversaRepository"></param>
+/// <param name="chatHistoryRepository"></param>
 /// <param name="geminiService"></param>
 /// <param name="logger"></param>
 public class IrisChatHandler(
-    IHistoricoConversaRepository historicoConversaRepository,
+    IChatHistoryRepository chatHistoryRepository,
     GeminiService geminiService,
     ILogger<IrisChatHandler> logger
 )
 {
-    public async Task<RespostaChat> ProcessarInteracaoAsync(RequisicaoChat requisicao)
+    public async Task<ChatResponse> ProcessInteractionAsync(ChatRequest request)
     {
-        logger.LogInformation("Iniciando processamento na Íris. Sessão: {SessaoId}", requisicao.SessaoId);
+        logger.LogInformation("Starting Iris processing. Session: {SessionId}", request.SessionId);
 
-        // Orquestra a chamada do serviço Gemini para gerar a resposta da IA
-        string respostaGeradaPelaIA = await geminiService.GerarRespostaAsync(requisicao.Texto);
+        // Orchestrates the Gemini service call to generate the AI response
+        string aiGeneratedResponse = await geminiService.GenerateResponseAsync(request.Text);
 
-        // Encapsula a infraestrutura de auditoria
-        var logConversa = new HistoricoConversa
+        // Encapsulates the audit infrastructure
+        var logConversa = new ChatHistory
         {
-            SessaoId = requisicao.SessaoId != Guid.Empty ? requisicao.SessaoId : Guid.NewGuid(),
-            PerguntaUsuario = requisicao.Texto,
-            RespostaIa = respostaGeradaPelaIA,
-            DataInteracao = DateTimeOffset.UtcNow
+            SessionId = request.SessionId != Guid.Empty ? request.SessionId : Guid.NewGuid(),
+            UserQuestion = request.Text,
+            AiResponse = aiGeneratedResponse,
+            InteractionDate = DateTimeOffset.UtcNow
         };
 
-        await historicoConversaRepository.AdicionarAsync(logConversa);
+        await chatHistoryRepository.AddAsync(logConversa);
 
-        return new RespostaChat
+        return new ChatResponse
         {
-            Texto = respostaGeradaPelaIA,
-            SessaoId = logConversa.SessaoId
+            Text = aiGeneratedResponse,
+            SessionId = logConversa.SessionId
         };
     }
 }

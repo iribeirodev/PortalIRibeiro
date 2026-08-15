@@ -2,8 +2,8 @@ using StackExchange.Redis;
 using DotNetEnv;
 using PortalIRibeiro.API.Features.Backoffice;
 using PortalIRibeiro.API.Features.Iris;
-using PortalIRibeiro.API.Features.Projeto;
-using PortalIRibeiro.API.Features.Telemetria;
+using PortalIRibeiro.API.Features.Projects;
+using PortalIRibeiro.API.Features.Telemetry;
 using PortalIRibeiro.API.Infrastructure.Data;
 using PortalIRibeiro.API.Infrastructure.Middleware;
 using PortalIRibeiro.API.Infrastructure.Repositories.Impl;
@@ -75,12 +75,12 @@ builder.Services.AddHttpLogging(logging =>
 builder.Services.AddScoped<BackofficeHandler>();
 builder.Services.AddScoped<IrisChatHandler>();
 builder.Services.AddHttpClient<GeminiService>();
-builder.Services.AddScoped<ProjetoHandler>();
-builder.Services.AddScoped<TelemetriaHandler>(); // <-- Adicionado
+builder.Services.AddScoped<ProjectHandler>();
+builder.Services.AddScoped<TelemetryHandler>();
 
-builder.Services.AddScoped<IProjetoRepository, ProjetoRepository>();
-builder.Services.AddScoped<IHistoricoConversaRepository, HistoricoConversaRepository>();
-builder.Services.AddScoped<IVisitaRepository, VisitaRepository>(); // <-- Adicionado
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IChatHistoryRepository, ChatHistoryRepository>();
+builder.Services.AddScoped<IVisitRepository, VisitRepository>();
 
 builder.Services.AddAuthorization();
 
@@ -104,9 +104,9 @@ app.UseAuthorization();
 
 app.MapMethods("/health", ["GET", "HEAD"], () => Results.Ok("Robot is alive!"));
 
-app.MapProjetoEndpoints();
+app.MapProjectEndpoints();
 app.MapIrisEndpoints();
 app.MapBackofficeEndpoints();
-app.MapTelemetriaEndpoints();
+app.MapTelemetryEndpoints();
 
 app.Run();

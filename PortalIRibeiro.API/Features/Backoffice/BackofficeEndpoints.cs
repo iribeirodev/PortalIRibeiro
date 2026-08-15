@@ -4,14 +4,14 @@ public static class BackofficeEndpoints
 {
     public static void MapBackofficeEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        // Agrupa as rotas administrativas do painel
+        // Groups the administrative routes of the dashboard
         var group = endpoints.MapGroup("api/backoffice").WithTags("Backoffice");
 
-        // GET: Listar projetos ativos no painel de administração
-        group.MapGet("/projetos", async (BackofficeHandler handler) =>
+        // GET: List active projects in the administration dashboard
+        group.MapGet("/projects", async (BackofficeHandler handler) =>
         {
-            var projetos = await handler.ObterProjetosAtivosAsync();
-            return Results.Ok(projetos);
+            var projects = await handler.GetActiveProjectsAsync();
+            return Results.Ok(projects);
         });
     }
 }

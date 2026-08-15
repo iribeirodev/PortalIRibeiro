@@ -4,10 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace PortalIRibeiro.API.Entities;
 
 /// <summary>
-/// Entidade que representa o histórico de conversas entre o usuário e a IA Íris, armazenando perguntas, respostas e metadados da interação.
+/// Entity that represents the conversation history between the user and the Iris AI, storing questions, answers and interaction metadata.
 /// </summary>
 [Table("historico_conversas")]
-public class HistoricoConversa
+public class ChatHistory
 {
     [Key]
     [Column("id")]
@@ -15,16 +15,16 @@ public class HistoricoConversa
 
     [Required]
     [Column("sessao_id")]
-    public Guid SessaoId { get; set; }
+    public Guid SessionId { get; set; }
 
     [Required]
     [Column("pergunta_usuario")]
-    public string PerguntaUsuario { get; set; } = string.Empty;
+    public string UserQuestion { get; set; } = string.Empty;
 
     [Required]
     [Column("resposta_ia")]
-    public string RespostaIa { get; set; } = string.Empty;
+    public string AiResponse { get; set; } = string.Empty;
 
     [Column("data_interacao")]
-    public DateTimeOffset DataInteracao { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset InteractionDate { get; set; } = DateTimeOffset.UtcNow;
 }

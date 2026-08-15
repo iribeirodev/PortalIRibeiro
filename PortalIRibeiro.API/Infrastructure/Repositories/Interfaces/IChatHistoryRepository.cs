@@ -2,8 +2,8 @@ using PortalIRibeiro.API.Entities;
 
 namespace PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 
-public interface IHistoricoConversaRepository
+public interface IChatHistoryRepository
 {
-    Task AdicionarAsync(HistoricoConversa historicoConversa, 
+    Task AddAsync(ChatHistory chatHistory,
                             CancellationToken cancellationToken = default);
 }

@@ -45,7 +45,7 @@ public class GeminiService(
         return "Você é a Íris, a assistente inteligente do portfólio de Itamar da Silva Ribeiro Junior. Desenvolvida estritamente com .NET 10 e Blazor.";
     }
     
-    public async Task<string> GerarRespostaAsync(string perguntaUsuario)
+    public async Task<string> GenerateResponseAsync(string userQuestion)
     {
         try
         {
@@ -72,7 +72,7 @@ public class GeminiService(
                     new GeminiContent
                     {
                         Role = "user",
-                        Parts = [new GeminiPart { Text = $"<contexto_rag>\n{contextoRags}\n</contexto_rag>\n\n<user_input>\n{perguntaUsuario}\n</user_input>" }]
+                        Parts = [new GeminiPart { Text = $"<contexto_rag>\n{contextoRags}\n</contexto_rag>\n\n<user_input>\n{userQuestion}\n</user_input>" }]
                     }
                 ]
             };

@@ -5,29 +5,38 @@ using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 
 namespace PortalIRibeiro.API.Infrastructure.Repositories.Impl;
 
-public class VisitaRepository(NpgsqlConnectionFactory connectionFactory) : IVisitaRepository
+public class VisitRepository(NpgsqlConnectionFactory connectionFactory) : IVisitRepository
 {
-    public async Task RegistrarAsync(Visita visita, CancellationToken cancellationToken = default)
+    public async Task RegisterAsync(Visit visit, CancellationToken cancellationToken = default)
     {
         const string sql = """
-        INSERT INTO portal.visitas
-            (ip, pais, cidade, regiao, pagina, user_agent, data_acesso)
-        VALUES
-            (@ip, @pais, @cidade, @regiao, @pagina, @user_agent, @data_acesso)
-        """;
+            INSERT INTO portal.visits
+                (
+                    ip_address, country, city, region, page, user_agent, 
+                    accessed_at, referer, visit_type, bot_name
+                )
+            VALUES
+                (
+                    @ip_address, @country, @city, @region, @page, @user_agent,
+                    @accessed_at, @referer, @visit_type, @bot_name
+                )
+            """;
 
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync(cancellationToken);
 
         await using var command = new NpgsqlCommand(sql, connection);
 
-        command.Parameters.AddWithValue("@ip", visita.Ip);
-        command.Parameters.AddWithValue("@pais", visita.Pais);
-        command.Parameters.AddWithValue("@cidade", visita.Cidade);
-        command.Parameters.AddWithValue("@regiao", visita.Regiao);
-        command.Parameters.AddWithValue("@pagina", visita.Pagina);
-        command.Parameters.AddWithValue("@user_agent", (object?)visita.UserAgent ?? DBNull.Value);
-        command.Parameters.AddWithValue("@data_acesso", visita.DataAcesso);
+        command.Parameters.AddWithValue("@ip_address", visit.IpAddress);
+        command.Parameters.AddWithValue("@country", visit.Country);
+        command.Parameters.AddWithValue("@city", visit.City);
+        command.Parameters.AddWithValue("@region", visit.Region);
+        command.Parameters.AddWithValue("@page", visit.Page);
+        command.Parameters.AddWithValue("@user_agent", visit.UserAgent ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@accessed_at", visit.AccessedAt);
+        command.Parameters.AddWithValue("@referer", visit.Referer ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@visit_type", visit.VisitType ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@bot_name", visit.BotName ?? (object)DBNull.Value);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }

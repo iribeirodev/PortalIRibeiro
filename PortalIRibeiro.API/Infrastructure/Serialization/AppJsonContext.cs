@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 using PortalIRibeiro.API.Entities;
-using PortalIRibeiro.API.Features.Contato;
+using PortalIRibeiro.API.Features.Contact;
 using PortalIRibeiro.API.Features.Iris;
-using PortalIRibeiro.API.Features.Telemetria;
+using PortalIRibeiro.API.Features.Telemetry;
 using PortalIRibeiro.API.Infrastructure.Middleware;
 
 namespace PortalIRibeiro.API.Infrastructure.Serialization;
@@ -12,23 +12,23 @@ namespace PortalIRibeiro.API.Infrastructure.Serialization;
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
 )]
 
-// --- DTOs do Gemini / Chat ---
-[JsonSerializable(typeof(RequisicaoChat))]  
-[JsonSerializable(typeof(RespostaChat))]
+// --- Gemini / Chat DTOs ---
+[JsonSerializable(typeof(ChatRequest))]  
+[JsonSerializable(typeof(ChatResponse))]
 [JsonSerializable(typeof(GeminiRequest))]
 [JsonSerializable(typeof(GeminiResponse))]
 
 // --- Middleware ---
 [JsonSerializable(typeof(ErrorResponse))]
 
-[JsonSerializable(typeof(MensagemContato))]
-[JsonSerializable(typeof(Projeto))]
-[JsonSerializable(typeof(Projeto[]))]
-[JsonSerializable(typeof(List<Projeto>))]
-[JsonSerializable(typeof(IEnumerable<Projeto>))]
+[JsonSerializable(typeof(ContactMessage))]
+[JsonSerializable(typeof(Project))]
+[JsonSerializable(typeof(Project[]))]
+[JsonSerializable(typeof(List<Project>))]
+[JsonSerializable(typeof(IEnumerable<Project>))]
 
-[JsonSerializable(typeof(Visita))]
-[JsonSerializable(typeof(RegistrarVisitaRequest))]
+[JsonSerializable(typeof(Visit))]
+[JsonSerializable(typeof(RegisterVisitRequest))]
 [JsonSerializable(typeof(GeoIpResponse))]
 public partial class AppJsonContext : JsonSerializerContext
 {

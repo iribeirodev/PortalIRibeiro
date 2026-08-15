@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace PortalIRibeiro.API.Entities;
 
 [Table("projetos")]
-public class Projeto
+public class Project
 {
     [Key]
     [Column("id")]
@@ -13,31 +13,31 @@ public class Projeto
     [Required]
     [MaxLength(150)]
     [Column("titulo")]
-    public string Titulo { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
 
     [Required]
     [Column("descricao")]
-    public string Descricao { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 
     [Required]
     [Column("tecnologias")]
-    public string[] Tecnologias { get; set; } = [];
+    public string[] Technologies { get; set; } = [];
 
     [MaxLength(255)]
     [Column("url_imagem")]
-    public string? UrlImagem { get; set; }
+    public string? ImageUrl { get; set; }
 
     [MaxLength(255)]
     [Column("url_github")]
-    public string? UrlGithub { get; set; }
+    public string? GitHubUrl { get; set; }
 
     [MaxLength(255)]
     [Column("url_demonstracao")]
-    public string? UrlDemonstracao { get; set; }
+    public string? DemoUrl { get; set; }
 
     [Column("data_criacao")]
-    public DateTimeOffset DataCriacao { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     [Column("ativo")]
-    public bool Ativo { get; set; } = true;
+    public bool IsActive { get; set; } = true;
 }

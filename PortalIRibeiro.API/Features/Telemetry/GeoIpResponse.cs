@@ -1,4 +1,4 @@
-namespace PortalIRibeiro.API.Features.Telemetria;
+namespace PortalIRibeiro.API.Features.Telemetry;
 
 public record GeoIpResponse
 {

@@ -5,9 +5,9 @@ using Npgsql;
 
 namespace PortalIRibeiro.API.Infrastructure.Repositories.Impl;
 
-public class ProjetoRepository(NpgsqlConnectionFactory connectionFactory) : IProjetoRepository
+public class ProjectRepository(NpgsqlConnectionFactory connectionFactory) : IProjectRepository
 {
-    public async Task<List<Projeto>> ObterProjetosAtivosAsync(CancellationToken cancellationToken = default)
+    public async Task<List<Project>> GetActiveProjectsAsync(CancellationToken cancellationToken = default)
     {
         const string sql = """
         SELECT
@@ -30,23 +30,23 @@ public class ProjetoRepository(NpgsqlConnectionFactory connectionFactory) : IPro
         await using var command = new NpgsqlCommand(sql, connection);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
-        var projetos = new List<Projeto>();
+        var projects = new List<Project>();
 
         while (await reader.ReadAsync(cancellationToken))
         {
-            projetos.Add(new Projeto
+            projects.Add(new Project
             {
                 Id = reader.GetInt32(reader.GetOrdinal("id")),
-                Titulo = reader.GetString(reader.GetOrdinal("titulo")),
-                Descricao = reader.GetString(reader.GetOrdinal("descricao")),
-                UrlImagem = reader.GetString(reader.GetOrdinal("url_imagem")),
-                UrlGithub = reader.GetString(reader.GetOrdinal("url_github")),
-                UrlDemonstracao = reader.GetString(reader.GetOrdinal("url_demonstracao")),
-                Ativo = reader.GetBoolean(reader.GetOrdinal("ativo")),
-                DataCriacao = reader.GetDateTime(reader.GetOrdinal("data_criacao"))
+                Title = reader.GetString(reader.GetOrdinal("titulo")),
+                Description = reader.GetString(reader.GetOrdinal("descricao")),
+                ImageUrl = reader.GetString(reader.GetOrdinal("url_imagem")),
+                GitHubUrl = reader.GetString(reader.GetOrdinal("url_github")),
+                DemoUrl = reader.GetString(reader.GetOrdinal("url_demonstracao")),
+                IsActive = reader.GetBoolean(reader.GetOrdinal("ativo")),
+                CreatedAt = reader.GetDateTime(reader.GetOrdinal("data_criacao"))
             });
         }
 
-        return projetos;
+        return projects;
     }
 }

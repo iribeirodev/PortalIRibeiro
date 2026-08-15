@@ -5,9 +5,9 @@ using Npgsql;
 
 namespace PortalIRibeiro.API.Infrastructure.Repositories.Impl;
 
-public class HistoricoConversaRepository(NpgsqlConnectionFactory connectionFactory) : IHistoricoConversaRepository
+public class ChatHistoryRepository(NpgsqlConnectionFactory connectionFactory) : IChatHistoryRepository
 {
-    public async Task AdicionarAsync(HistoricoConversa historicoConversa, CancellationToken cancellationToken = default)
+    public async Task AddAsync(ChatHistory chatHistory, CancellationToken cancellationToken = default)
     {
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync(cancellationToken);
@@ -16,14 +16,14 @@ public class HistoricoConversaRepository(NpgsqlConnectionFactory connectionFacto
             INSERT INTO portal.historico_conversas (
                 sessao_id, pergunta_usuario, resposta_ia, data_interacao)
             VALUES (
-                @SessaoId, @PerguntaUsuario, @RespostaIa, @DataInteracao)";
+                @SessionId, @UserQuestion, @AiResponse, @InteractionDate)";
 
         await using var command = new NpgsqlCommand(sql, connection);
-        
-        command.Parameters.AddWithValue("SessaoId", historicoConversa.SessaoId);
-        command.Parameters.AddWithValue("PerguntaUsuario", historicoConversa.PerguntaUsuario);
-        command.Parameters.AddWithValue("RespostaIa", historicoConversa.RespostaIa);
-        command.Parameters.AddWithValue("DataInteracao", historicoConversa.DataInteracao);
+
+        command.Parameters.AddWithValue("SessionId", chatHistory.SessionId);
+        command.Parameters.AddWithValue("UserQuestion", chatHistory.UserQuestion);
+        command.Parameters.AddWithValue("AiResponse", chatHistory.AiResponse);
+        command.Parameters.AddWithValue("InteractionDate", chatHistory.InteractionDate);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
