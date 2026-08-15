@@ -2,8 +2,8 @@ using PortalIRibeiro.API.Entities;
 
 namespace PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 
-public interface IProjetoRepository
+public interface IProjectRepository
 {
-    Task<List<Projeto>> ObterProjetosAtivosAsync(
+    Task<List<Project>> GetActiveProjectsAsync(
         CancellationToken cancellationToken = default);
 }

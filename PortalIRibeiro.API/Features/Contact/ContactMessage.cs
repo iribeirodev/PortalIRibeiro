@@ -1,10 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PortalIRibeiro.API.Features.Contato;
+namespace PortalIRibeiro.API.Features.Contact;
 
 [Table("mensagens_contato")]
-public class MensagemContato
+public class ContactMessage
 {
     [Key]
     [Column("id")]
@@ -13,7 +13,7 @@ public class MensagemContato
     [Required]
     [MaxLength(100)]
     [Column("nome")]
-    public string Nome { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     [Required]
     [MaxLength(150)]
@@ -22,15 +22,15 @@ public class MensagemContato
 
     [MaxLength(150)]
     [Column("assunto")]
-    public string? Assunto { get; set; }
+    public string? Subject { get; set; }
 
     [Required]
     [Column("mensagem")]
-    public string Mensagem { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
 
     [Column("data_envio")]
-    public DateTimeOffset DataEnvio { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset SentAt { get; set; } = DateTimeOffset.UtcNow;
 
     [Column("lida")]
-    public bool Lida { get; set; } = false;
+    public bool IsRead { get; set; } = false;
 }

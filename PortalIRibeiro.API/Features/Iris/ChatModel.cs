@@ -1,13 +1,13 @@
 namespace PortalIRibeiro.API.Features.Iris;
 
-public class RequisicaoChat
+public class ChatRequest
 {
-    public Guid SessaoId { get; set; }
-    public string Texto { get; set; } = string.Empty;
+    public Guid SessionId { get; set; }
+    public string Text { get; set; } = string.Empty;
 }
 
-public class RespostaChat
+public class ChatResponse
 {
-    public Guid SessaoId { get; set; }
-    public string Texto { get; set; } = string.Empty;
+    public Guid SessionId { get; set; }
+    public string Text { get; set; } = string.Empty;
 }

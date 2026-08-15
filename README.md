@@ -61,15 +61,15 @@ O frontend usa o **Next.js App Router** com um modelo de renderização **híbri
 | Camada da página | Modo | Onde |
 |---|---|---|
 | Home — Hero, About, Services, Contact | **SSG** (prerenderizado no build) | `app/page.tsx` + `components/{hero,about,services,contact}.tsx` |
-| Laboratório (projetos) | **ISR** (SSG + revalidação a cada 1h) | `components/laboratory.tsx` via `getProjetos({ revalidate: 3600 })` |
+| Laboratório (projetos) | **ISR** (SSG + revalidação a cada 1h) | `components/laboratory.tsx` via `getProjects({ revalidate: 3600 })` |
 | Chat Íris, Telemetria, Navbar | **CSR** (componentes client) | `components/{resume-assistant,telemetry,navbar}.tsx` |
 | Loading / Not Found | SSG | `app/loading.tsx`, `app/not-found.tsx` |
 
 ### Como as partes se conectam
 
 - **SSG (Server Components):** a home é 100% pré-renderizada no `next build` e entregue como HTML estático via CDN — carregamento instantâneo e SEO completo.
-- **ISR no Laboratório:** a listagem de projetos é buscada da API (`GET api/backoffice/projetos`) no momento do build e revalidada em *background* a cada hora, mantendo o conteúdo fresco sem regenerar a página a cada visita.
-- **CSR:** chat, telemetria e menu (hambúrguer) são componentes `"use client"`. O chat chama `POST api/iris/chat` e a telemetria `POST api/telemetria/visita` **direto do navegador contra a API da Koyeb** (CORS liberado). Não há API Routes nem Server Actions como proxy — o plano Hobby da Vercel não cobra por essas requisições.
+- **ISR no Laboratório:** a listagem de projetos é buscada da API (`GET api/backoffice/projects`) no momento do build e revalidada em *background* a cada hora, mantendo o conteúdo fresco sem regenerar a página a cada visita.
+- **CSR:** chat, telemetria e menu (hambúrguer) são componentes `"use client"`. O chat chama `POST api/iris/chat` e a telemetria `POST api/telemetry/visit` **direto do navegador contra a API da Koyeb** (CORS liberado). Não há API Routes nem Server Actions como proxy — o plano Hobby da Vercel não cobra por essas requisições.
 - **Imagens:** `<img>` nativo em vez de `next/image` para não esbarrar nos limites de otimização de imagem do plano (os avisos `@next/next/no-img-element` no lint são intencionais).
 - **Markdown:** as respostas do chat são renderizadas com `react-markdown` + `remark-gfm` (`lib/markdown.tsx`), reproduzindo a mesma saída que o Blazor produzia com Markdig.
 - **Estado local:** o limite diário do chat (90/100 perguntas) fica no `localStorage` sob a chave `iris_usage_tracker`, mantendo compatibilidade com a versão anterior do portal.

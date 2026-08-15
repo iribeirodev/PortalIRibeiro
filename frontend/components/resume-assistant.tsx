@@ -8,7 +8,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { conversarComIris } from "@/lib/api";
+import { chatWithIris } from "@/lib/api";
 import { Markdown } from "@/lib/markdown";
 import type { ChatMessage } from "@/lib/types";
 
@@ -82,7 +82,7 @@ export function ResumeAssistant() {
   ]);
   const [, forceRender] = useReducer((x: number) => x + 1, 0);
 
-  const sessaoIdRef = useRef<string>(crypto.randomUUID());
+  const sessionIdRef = useRef<string>(crypto.randomUUID());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const controle = useSyncExternalStore(
@@ -158,13 +158,13 @@ export function ResumeAssistant() {
     }
 
     try {
-      const resultado = await conversarComIris(sessaoIdRef.current, userText);
+      const result = await chatWithIris(sessionIdRef.current, userText);
 
-      if (resultado) {
-        sessaoIdRef.current = resultado.sessaoId;
+      if (result) {
+        sessionIdRef.current = result.sessionId;
         setMessages((prev) => [
           ...prev,
-          { text: resultado.texto, isUser: false, timestamp: agoraIso() },
+          { text: result.text, isUser: false, timestamp: agoraIso() },
         ]);
         incrementarContadorUso();
       } else {

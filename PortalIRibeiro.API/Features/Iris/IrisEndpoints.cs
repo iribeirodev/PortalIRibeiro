@@ -8,9 +8,9 @@ public static class IrisEndpoints
     {
         var group = endpoints.MapGroup("api/iris").WithTags("Iris Chatbot");
 
-        group.MapPost("/chat", async (RequisicaoChat request, IrisChatHandler handler) =>
+        group.MapPost("/chat", async (ChatRequest request, IrisChatHandler handler) =>
         {
-            if (request is null || string.IsNullOrWhiteSpace(request.Texto))
+            if (request is null || string.IsNullOrWhiteSpace(request.Text))
             {
                 var erro = new ErrorResponse(
                     Success: false,
@@ -21,8 +21,8 @@ public static class IrisEndpoints
                 return Results.BadRequest(erro);
             }
 
-            RespostaChat resposta = await handler.ProcessarInteracaoAsync(request); 
-            
+            ChatResponse resposta = await handler.ProcessInteractionAsync(request);
+
             return Results.Ok(resposta);
         });
     }

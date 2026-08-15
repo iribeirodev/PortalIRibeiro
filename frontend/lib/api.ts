@@ -1,4 +1,4 @@
-import type { Projeto, RequisicaoChat, RespostaChat } from "./types";
+import type { Project, ChatRequest, ChatResponse } from "./types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
@@ -7,14 +7,14 @@ function apiUrl(path: string): string {
   return `${base}${path}`;
 }
 
-export async function getProjetos(options?: {
+export async function getProjects(options?: {
   revalidate?: number;
-}): Promise<Projeto[]> {
+}): Promise<Project[]> {
   try {
     const fetchOptions: RequestInit = options?.revalidate
       ? { next: { revalidate: options.revalidate } }
       : { cache: "no-store" };
-    const res = await fetch(apiUrl("api/backoffice/projetos"), {
+    const res = await fetch(apiUrl("api/backoffice/projects"), {
       ...fetchOptions,
       signal: AbortSignal.timeout(15000),
     });
@@ -26,40 +26,40 @@ export async function getProjetos(options?: {
   }
 }
 
-export async function conversarComIris(
-  sessaoId: string,
-  texto: string
-): Promise<RespostaChat | null> {
+export async function chatWithIris(
+  sessionId: string,
+  text: string
+): Promise<ChatResponse | null> {
   try {
     const res = await fetch(apiUrl("api/iris/chat"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessaoId, texto } satisfies RequisicaoChat),
+      body: JSON.stringify({ sessionId, text } satisfies ChatRequest),
     });
 
     if (!res.ok) {
       return {
-        texto: "Desculpe, a Íris encontrou um erro no processamento HTTP.",
-        sessaoId,
+        text: "Desculpe, a Íris encontrou um erro no processamento HTTP.",
+        sessionId,
       };
     }
 
-    return (await res.json()) as RespostaChat;
+    return (await res.json()) as ChatResponse;
   } catch (err) {
     console.error("Erro ao conversar com a Íris:", err);
     return {
-      texto: "Não foi possível conectar ao servidor da Íris.",
-      sessaoId,
+      text: "Não foi possível conectar ao servidor da Íris.",
+      sessionId,
     };
   }
 }
 
-export async function registrarVisita(pagina = "/"): Promise<void> {
+export async function registerVisit(page = "/"): Promise<void> {
   try {
-    await fetch(apiUrl("api/telemetria/visita"), {
+    await fetch(apiUrl("api/telemetry/visit"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pagina }),
+      body: JSON.stringify({ page }),
     });
   } catch (err) {
     console.error("Erro ao registrar telemetria:", err);

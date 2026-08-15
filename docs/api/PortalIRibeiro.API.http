@@ -43,7 +43,7 @@ Content-Type: {{contentType}}
 ###
 
 ### ------------------------------------------------------------------
-### 4. Backoffice - Listar Projetos Ativos
+### 4. Backoffice - List Active Projects
 ### ------------------------------------------------------------------
-GET {{host}}/api/backoffice/projetos
+GET {{host}}/api/backoffice/projects
 Accept: {{contentType}}

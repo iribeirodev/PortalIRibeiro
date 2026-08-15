@@ -1,23 +1,23 @@
-export interface Projeto {
+export interface Project {
   id: number;
-  titulo: string;
-  descricao: string;
-  tecnologias: string[];
-  urlImagem?: string | null;
-  urlGithub?: string | null;
-  urlDemonstracao?: string | null;
-  dataCriacao: string;
-  ativo: boolean;
+  title: string;
+  description: string;
+  technologies: string[];
+  imageUrl?: string | null;
+  githubUrl?: string | null;
+  demoUrl?: string | null;
+  createdAt: string;
+  isActive: boolean;
 }
 
-export interface RequisicaoChat {
-  sessaoId: string;
-  texto: string;
+export interface ChatRequest {
+  sessionId: string;
+  text: string;
 }
 
-export interface RespostaChat {
-  sessaoId: string;
-  texto: string;
+export interface ChatResponse {
+  sessionId: string;
+  text: string;
 }
 
 export interface ChatMessage {

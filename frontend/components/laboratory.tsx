@@ -1,22 +1,22 @@
-import { getProjetos } from "@/lib/api";
+import { getProjects } from "@/lib/api";
 
 export async function LaboratorySection() {
-  const projetos = await getProjetos({ revalidate: 3600 });
+  const projects = await getProjects({ revalidate: 3600 });
 
   return (
     <section className="laboratory" id="laboratory">
       <div className="container-fluid px-4 px-lg-5">
         <h2 className="section-title">Laboratório</h2>
 
-        {projetos.length === 0 ? (
+        {projects.length === 0 ? (
           <p className="text-center text-muted">
             Nenhum experimento ativo no laboratório por enquanto.
           </p>
         ) : (
           <div className="laboratory-grid">
-            {projetos.map((projeto) => (
+            {projects.map((project) => (
               <div
-                key={projeto.id}
+                key={project.id}
                 className="laboratory-item"
                 style={{
                   maxWidth: "380px",
@@ -29,28 +29,28 @@ export async function LaboratorySection() {
                 }}
               >
                 <img
-                  src={projeto.urlImagem ?? undefined}
-                  alt={projeto.titulo}
+                  src={project.imageUrl ?? undefined}
+                  alt={project.title}
                   className="laboratory-image"
                   style={{ width: "100%", height: "250px", objectFit: "cover" }}
                 />
 
                 <div className="laboratory-overlay" style={{ pointerEvents: "none" }}>
-                  <h3>{projeto.titulo}</h3>
-                  <p>{projeto.tecnologias.join(", ")}</p>
+                  <h3>{project.title}</h3>
+                  <p>{project.technologies.join(", ")}</p>
                 </div>
 
                 <div
                   className="laboratory-info"
                   style={{ flexGrow: 1, position: "relative", zIndex: 2 }}
                 >
-                  <h3>{projeto.titulo}</h3>
-                  <p className="mb-3">{projeto.descricao}</p>
+                  <h3>{project.title}</h3>
+                  <p className="mb-3">{project.description}</p>
 
                   <div className="laboratory-links" style={{ position: "relative", zIndex: 3 }}>
-                    {projeto.urlGithub && (
+                    {project.githubUrl && (
                       <a
-                        href={projeto.urlGithub}
+                        href={project.githubUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn btn-sm btn-outline-dark me-2 d-inline-flex align-items-center gap-2"
@@ -62,9 +62,9 @@ export async function LaboratorySection() {
                       </a>
                     )}
 
-                    {projeto.urlDemonstracao && (
+                    {project.demoUrl && (
                       <a
-                        href={projeto.urlDemonstracao}
+                        href={project.demoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn btn-sm btn-primary"
