@@ -28,6 +28,10 @@ CREATE TABLE portal.projects (
 );
 CREATE INDEX idx_projects_active ON portal.projects USING btree (created_at DESC) WHERE (is_active = true);
 
+-- Seed data
+INSERT INTO portal.projects (title, description, technologies, image_url, github_url, demo_url, created_at, is_active) VALUES
+	 ('Portal IRibeiro / Íris','Assistente inteligente de IA focado na leitura dinâmica de currículo e trajetórias profissionais, utilizando tecnologia RAG.','{.NET 10,C# 14,Blazor,Upstash Redis,RAG}','/images/laboratorio/resume-assist.jpeg','https://github.com/iribeirodev/PortalIRibeiro#assistente-inteligente-%C3%ADris','','2026-06-27 18:14:51.650',true);
+
 -- ---------------------------------------------------------------------
 -- Chat history
 -- ---------------------------------------------------------------------
