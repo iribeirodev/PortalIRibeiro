@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Desativa otimizações rígidas em modo Debug -->
+    <PublishAot Condition="'$(Configuration)' == 'Debug'">false</PublishAot>
+
+    <!-- Suprime o aviso falso-positivo do MaxLengthAttribute em Native AOT -->
+    <NoWarn>$(NoWarn);IL2026</NoWarn>
+
+    <!-- Mantenha InvariantGlobalization falso para o Npgsql -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+
+    <!-- Impede a geração de manifestos de static web assets -->
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <!-- Configurações exclusivas para DESENVOLVIMENTO (Debug Local) -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <!-- Configurações exclusivas para PRODUÇÃO (AOT / Release) -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <StripSymbols>true</StripSymbols>
+    <NativeDebugSymbols>false</NativeDebugSymbols>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
+    <PackageReference Include="DotNetEnv" Version="3.2.0" />
+    <PackageReference Include="MailKit" Version="4.17.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <PackageReference Include="Polly" Version="8.7.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="StackExchange.Redis" Version="3.0.0" />
+    <PackageReference Include="System.ServiceModel.Syndication" Version="10.0.9" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
+    <PackageReference Include="Npgsql" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update=".env">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Features/Iris/Context/iris_instruction.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

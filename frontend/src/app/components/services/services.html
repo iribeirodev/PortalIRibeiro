@@ -1,0 +1,14 @@
+<section class="services" id="services">
+  <div class="container-fluid px-4 px-lg-5">
+    <h2 class="section-title">Meus Serviços</h2>
+    <div class="services-grid">
+      @for (service of services; track service.title) {
+        <div class="service-card">
+          <div class="service-icon">{{ service.icon }}</div>
+          <h3>{{ service.title }}</h3>
+          <p>{{ service.description }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
