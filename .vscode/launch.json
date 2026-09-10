@@ -19,20 +19,20 @@
             }
         },
         {
-            "name": ".NET Core Launch (Blazor WASM)",
-            "type": "blazorwasm",
+            "name": "Chrome (Frontend Angular)",
+            "type": "chrome",
             "request": "launch",
-            "preLaunchTask": "build-frontend",
-            "cwd": "${workspaceFolder}/PortalIRibeiro.FrontEnd",
-            "url": "http://localhost:5180"
+            "preLaunchTask": "serve-frontend",
+            "url": "http://localhost:4200",
+            "webRoot": "${workspaceFolder}/frontend"
         }
     ],
     "compounds": [
         {
-            "name": "Rodar Ecossistema Completo (API + Blazor)",
+            "name": "Rodar Ecossistema Completo (API + Angular)",
             "configurations": [
                 ".NET Core Launch (API)",
-                ".NET Core Launch (Blazor WASM)"
+                "Chrome (Frontend Angular)"
             ]
         }
     ]

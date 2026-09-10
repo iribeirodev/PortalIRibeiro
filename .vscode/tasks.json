@@ -15,15 +15,32 @@
         },
         {
             "label": "build-frontend",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "build",
-                "${workspaceFolder}/PortalIRibeiro.FrontEnd/PortalIRibeiro.FrontEnd.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
-            ],
-            "problemMatcher": "$msCompile"
+            "type": "npm",
+            "script": "build",
+            "path": "${workspaceFolder}/frontend",
+            "problemMatcher": [
+                "$tsc"
+            ]
+        },
+        {
+            "label": "serve-frontend",
+            "type": "npm",
+            "script": "start",
+            "path": "${workspaceFolder}/frontend",
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "npm",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": "Application bundle generation complete.*|Watch mode enabled.*"
+                },
+                "pattern": {
+                    "regexp": "(error|warn)\\s+(.+)",
+                    "file": 2,
+                    "line": 3
+                }
+            }
         }
     ]
 }
