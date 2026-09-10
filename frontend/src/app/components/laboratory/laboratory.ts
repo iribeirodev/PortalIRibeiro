@@ -22,6 +22,10 @@ export class Laboratory {
     void this.load();
   }
 
+  /**
+   * Carrega os projetos do laboratório, usando cache em memória de 1h para
+   * evitar chamadas repetidas à API dentro da mesma sessão.
+   */
   private async load(): Promise<void> {
     const now = Date.now();
     if (this.cacheKey === 'projects' && now < this.cacheUntil) {

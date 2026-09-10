@@ -13,6 +13,11 @@ interface ControleUsoIris {
   dataUso: string;
 }
 
+/**
+ * Verifica se a data informada corresponde ao dia atual.
+ * @param dataUso Data em formato ISO (string) armazenada no localStorage.
+ * @returns `true` quando a data é hoje; caso contrário, `false`.
+ */
 function isToday(dataUso: string): boolean {
   const data = new Date(dataUso);
   const agora = new Date();
@@ -23,11 +28,18 @@ function isToday(dataUso: string): boolean {
   );
 }
 
-function agoraIso(): string {
+/**
+ * Retorna o timestamp atual no formato ISO 8601 (UTC).
+ */
+function nowIso(): string {
   return new Date().toISOString();
 }
 
-function lerControle(): ControleUsoIris | null {
+/**
+ * Lê o controle de uso diário da Íris persistido no localStorage.
+ * @returns O controle salvo, ou `null` quando inexistente/corrompido.
+ */
+function loadUsageControl(): ControleUsoIris | null {
   try {
     const json = localStorage.getItem(STORAGE_KEY);
     if (json) {
@@ -56,7 +68,7 @@ export class ResumeAssistant implements OnDestroy {
     {
       text: 'Olá! Eu sou a Iris, assistente inteligente do Itamar. Pode me perguntar sobre a trajetória dele, stack técnica ou experiências profissionais!',
       isUser: false,
-      timestamp: agoraIso(),
+      timestamp: nowIso(),
     },
   ]);
   protected readonly perguntasFeitas = signal(0);
@@ -67,7 +79,7 @@ export class ResumeAssistant implements OnDestroy {
   private readonly messagesEnd = viewChild<ElementRef<HTMLDivElement>>('messagesEnd');
 
   constructor() {
-    const controle = lerControle();
+    const controle = loadUsageControl();
     this.perguntasFeitas.set(
       controle && isToday(controle.dataUso) ? controle.quantidadePerguntas : 0,
     );
@@ -97,7 +109,7 @@ export class ResumeAssistant implements OnDestroy {
       return;
     }
 
-    const atual = lerControle();
+    const atual = loadUsageControl();
     const perguntas =
       atual && isToday(atual.dataUso) ? atual.quantidadePerguntas : 0;
     const atingido = perguntas >= LIMITE_MAXIMO;
@@ -114,6 +126,10 @@ export class ResumeAssistant implements OnDestroy {
     void this.streamResponse(text);
   }
 
+  /**
+   * Exibe a mensagem de limite diário atingido após uma pequena pausa.
+   * @param perguntas Quantidade de perguntas já realizadas hoje.
+   */
   private async limitReached(perguntas: number): Promise<void> {
     await new Promise((r) => setTimeout(r, 800));
     this.appendMessage(
@@ -123,6 +139,11 @@ export class ResumeAssistant implements OnDestroy {
     this.isTyping.set(false);
   }
 
+  /**
+   * Envia a mensagem à API da Íris e incorpora a resposta na conversa.
+   * Ao concluir com sucesso, incrementa o contador de uso diário.
+   * @param text Texto da pergunta enviada pelo usuário.
+   */
   private async streamResponse(text: string): Promise<void> {
     let countUsage = true;
 
@@ -143,7 +164,7 @@ export class ResumeAssistant implements OnDestroy {
       },
       complete: () => {
         if (countUsage) {
-          this.incrementarContadorUso();
+          this.incrementUsageCounter();
         }
         this.isTyping.set(false);
         this.streamSubscription = null;
@@ -151,16 +172,25 @@ export class ResumeAssistant implements OnDestroy {
     });
   }
 
+  /**
+   * Acrescenta uma mensagem ao histórico visível do chat.
+   * @param text Conteúdo textual da mensagem.
+   * @param isUser Define se a mensagem é do usuário (`true`) ou da Íris (`false`).
+   */
   private appendMessage(text: string, isUser: boolean): void {
     this.messages.update((prev) => [
       ...prev,
-      { text, isUser, timestamp: agoraIso() },
+      { text, isUser, timestamp: nowIso() },
     ]);
   }
 
-  private incrementarContadorUso(): void {
+  /**
+   * Incrementa o controle de uso diário no localStorage, respeitando o dia
+   * corrente. Falhas de armazenamento são silenciadas.
+   */
+  private incrementUsageCounter(): void {
     try {
-      const atual = lerControle();
+      const atual = loadUsageControl();
       let novo: ControleUsoIris;
 
       if (atual && isToday(atual.dataUso)) {
@@ -169,7 +199,7 @@ export class ResumeAssistant implements OnDestroy {
           quantidadePerguntas: atual.quantidadePerguntas + 1,
         };
       } else {
-        novo = { quantidadePerguntas: 1, dataUso: agoraIso() };
+        novo = { quantidadePerguntas: 1, dataUso: nowIso() };
       }
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(novo));
@@ -179,6 +209,9 @@ export class ResumeAssistant implements OnDestroy {
     }
   }
 
+  /**
+   * Rola a área de mensagens até o final, suavizando a animação.
+   */
   private scrollToBottom(): void {
     const el = this.messagesEnd()?.nativeElement;
     if (el && typeof el.scrollIntoView === 'function') {
