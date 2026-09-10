@@ -5,34 +5,21 @@
             "name": ".NET Core Launch (API)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build-api",
+            "preLaunchTask": "run-ecosystem",
             "program": "${workspaceFolder}/PortalIRibeiro.API/bin/Debug/net10.0/PortalIRibeiro.API.dll",
             "args": [],
             "cwd": "${workspaceFolder}/PortalIRibeiro.API",
             "stopAtEntry": false,
-            "serverReadyAction": {
-                "action": "openExternally",
-                "pattern": "\\\\bNow listening on:\\\\s+(https?://\\\\S+)"
-            },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
             }
-        },
-        {
-            "name": "Chrome (Frontend Angular)",
-            "type": "chrome",
-            "request": "launch",
-            "preLaunchTask": "serve-frontend",
-            "url": "http://localhost:4200",
-            "webRoot": "${workspaceFolder}/frontend"
         }
     ],
     "compounds": [
         {
             "name": "Rodar Ecossistema Completo (API + Angular)",
             "configurations": [
-                ".NET Core Launch (API)",
-                "Chrome (Frontend Angular)"
+                ".NET Core Launch (API)"
             ]
         }
     ]
