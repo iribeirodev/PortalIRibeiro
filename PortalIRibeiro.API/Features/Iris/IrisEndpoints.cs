@@ -2,8 +2,15 @@ using PortalIRibeiro.API.Infrastructure.Middleware;
 
 namespace PortalIRibeiro.API.Features.Iris;
 
+/// <summary>
+/// Maps the Iris chatbot HTTP endpoints.
+/// </summary>
 public static class IrisEndpoints
 {
+    /// <summary>
+    /// Maps the Iris endpoint group (e.g. POST /api/iris/chat).
+    /// </summary>
+    /// <param name="endpoints">The endpoint route builder.</param>
     public static void MapIrisEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("api/iris").WithTags("Iris Chatbot");

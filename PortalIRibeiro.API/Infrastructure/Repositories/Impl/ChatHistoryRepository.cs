@@ -1,7 +1,7 @@
+using Npgsql;
 using PortalIRibeiro.API.Entities;
 using PortalIRibeiro.API.Infrastructure.Data;
 using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
-using Npgsql;
 
 namespace PortalIRibeiro.API.Infrastructure.Repositories.Impl;
 

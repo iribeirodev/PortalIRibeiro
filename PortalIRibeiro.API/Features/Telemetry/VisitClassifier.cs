@@ -1,16 +1,19 @@
 namespace PortalIRibeiro.API.Features.Telemetry;
 
 /// <summary>
-/// Classifies visitor requests based on their user-agent.
+/// Classifies visitor requests as human, crawler, social crawler or bot
+/// based on the HTTP user-agent header.
 /// </summary>
 public static class VisitClassifier
 {
     /// <summary>
-    /// Determines the visit type and bot name from a user-agent string.
+    /// Determines the visit type and the identified bot name from the user-agent.
     /// </summary>
-    /// <param name="userAgent">The HTTP user-agent string.</param>
+    /// <param name="userAgent">The HTTP user-agent header value.</param>
     /// <returns>
-    /// A tuple containing the visit type and the identified bot name, if applicable.
+    /// A tuple with the visit type (<c>human</c>, <c>crawler</c>,
+    /// <c>social_crawler</c>, <c>bot</c> or <c>unknown</c>) and the bot name
+    /// when a known crawler is detected, otherwise <see langword="null"/>.
     /// </returns>
     public static (string VisitType, string? BotName) Classify(string? userAgent)
     {

@@ -1,14 +1,15 @@
 using System.Net;
+using StackExchange.Redis;
 using PortalIRibeiro.API.Entities;
 using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 using PortalIRibeiro.API.Infrastructure.Serialization;
-using StackExchange.Redis;
 
 namespace PortalIRibeiro.API.Features.Telemetry;
 
 /// <summary>
-/// Handler responsible for processing, enriching (GeoIP),
-/// cache deduplication and persisting visit telemetry.
+/// Processes visit telemetry: captures the client IP, deduplicates repeated
+/// visits through a Redis cache, enriches location data via the ip-api.com
+/// GeoIP service and persists the record.
 /// </summary>
 public class TelemetryHandler(
     IVisitRepository repository,
@@ -16,8 +17,12 @@ public class TelemetryHandler(
     IConnectionMultiplexer redis)
 {
     /// <summary>
-    /// Processes the registration of a new visit from the HTTP request and the sent payload.
+    /// Processes the registration of a new visit from the current HTTP request,
+    /// applying deduplication, GeoIP enrichment and persistence.
     /// </summary>
+    /// <param name="httpContext">The current HTTP context (used for IP, referer and user-agent).</param>
+    /// <param name="request">The payload containing the visited page.</param>
+    /// <param name="cancellationToken">A token used to cancel the asynchronous operation.</param>
     public async Task ProcessVisitAsync(
         HttpContext httpContext,
         RegisterVisitRequest request,

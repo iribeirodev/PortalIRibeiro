@@ -9,7 +9,10 @@ using PortalIRibeiro.API.Infrastructure.Serialization;
 namespace PortalIRibeiro.API.Features.Iris;
 
 /// <summary>
-/// Serviço responsável por interagir com a API Gemini para gerar respostas baseadas em contexto e instruções do sistema.
+/// Interacts with the Gemini API to generate Iris' answers. The curriculum context
+/// is loaded from Postgres (with an in-memory cache) and combined with the system
+/// instructions into the model payload. When the context cannot be loaded, a
+/// friendly message is returned instead of calling the API.
 /// </summary>
 public class GeminiService(
     HttpClient httpClient,
@@ -18,9 +21,9 @@ public class GeminiService(
     IMemoryCache cache,
     IParameterRepository parameterRepository)
 {
-    private static readonly TimeSpan ContextoCacheTtl = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan ContextCacheTtl = TimeSpan.FromMinutes(15);
 
-    private const string SemAcessoMensagem = "Não tenho acesso aos dados do Itamar nesse momento.";
+    private const string NoAccessMessage = "Não tenho acesso aos dados do Itamar nesse momento.";
 
     private readonly string apiKey = configuration["Gemini:ApiKey"]
         ?? throw new InvalidOperationException("A chave de API do Gemini ('Gemini:ApiKey') não foi configurada.");
@@ -34,9 +37,14 @@ public class GeminiService(
 
     private readonly string paramKey = configuration["IrisSettings:ParamKey"] ?? "curriculo:itamar";
 
-    private readonly string systemInstruction = CarregarInstrucoes(logger);
+    private readonly string systemInstruction = LoadInstructions(logger);
 
-    private static string CarregarInstrucoes(ILogger<GeminiService> log)
+    /// <summary>
+    /// Loads the Iris system instructions from the iris_instruction.md file.
+    /// </summary>
+    /// <param name="log">Logger used to trace the load result.</param>
+    /// <returns>The instructions content, or an inline fallback when the file is missing.</returns>
+    private static string LoadInstructions(ILogger<GeminiService> log)
     {
         var contextPath = Path.Combine(AppContext.BaseDirectory,
             "Features",
@@ -45,37 +53,45 @@ public class GeminiService(
 
         if (File.Exists(contextPath))
         {
-            var conteudo = File.ReadAllText(contextPath, Encoding.UTF8);
-            log.LogInformation("Instruções de sistema da Íris carregadas com sucesso a partir da pasta Context.");
-            return conteudo;
+            var content = File.ReadAllText(contextPath, Encoding.UTF8);
+            log.LogInformation("Iris system instructions loaded from the Context folder.");
+            return content;
         }
 
-        log.LogWarning("Arquivo iris_instruction.md não encontrado em {Path}. Usando fallback em string.", contextPath);
+        log.LogWarning("File iris_instruction.md not found at {Path}. Using inline fallback.", contextPath);
         return "Você é a Íris, a assistente inteligente do portfólio de Itamar da Silva Ribeiro Junior. Desenvolvida estritamente com .NET 10 e Blazor.";
     }
 
+    /// <summary>
+    /// Generates Iris' answer for the given user question.
+    /// </summary>
+    /// <param name="userQuestion">The user's question sent to Iris.</param>
+    /// <returns>
+    /// The generated answer, or the friendly message when the curriculum context
+    /// cannot be loaded from the database.
+    /// </returns>
     public async Task<string> GenerateResponseAsync(string userQuestion)
     {
-        string? contextoRags;
+        string? ragContext;
         try
         {
-            contextoRags = await ObterContextoCurriculoAsync();
+            ragContext = await GetCurriculumContextAsync();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Falha ao carregar o contexto do currículo do Postgres. Chave: {Key}", paramKey);
-            return SemAcessoMensagem;
+            logger.LogError(ex, "Failed to load the curriculum context from Postgres. Key: {Key}", paramKey);
+            return NoAccessMessage;
         }
 
-        if (string.IsNullOrWhiteSpace(contextoRags))
+        if (string.IsNullOrWhiteSpace(ragContext))
         {
-            logger.LogWarning("Contexto do currículo não encontrado no Postgres. Chave: {Key}", paramKey);
-            return SemAcessoMensagem;
+            logger.LogWarning("Curriculum context not found in Postgres. Key: {Key}", paramKey);
+            return NoAccessMessage;
         }
 
         try
         {
-            // Payload fortemente tipado para Native AOT
+            // Strongly-typed payload for Native AOT
             var payload = new GeminiRequest
             {
                 SystemInstruction = new GeminiSystemInstruction
@@ -87,107 +103,131 @@ public class GeminiService(
                     new GeminiContent
                     {
                         Role = "user",
-                        Parts = [new GeminiPart { Text = $"<contexto_rag>\n{contextoRags}\n</contexto_rag>\n\n<user_input>\n{userQuestion}\n</user_input>" }]
+                        Parts = [new GeminiPart { Text = $"<rag_context>\n{ragContext}\n</rag_context>\n\n<user_input>\n{userQuestion}\n</user_input>" }]
                     }
                 ]
             };
 
-            // Serialização via Source Generator
+            // Serialization via Source Generator
             var jsonPayload = JsonSerializer.Serialize(payload, AppJsonContext.Default.GeminiRequest);
 
-            // Tenta o modelo primário; em caso de falha, recorre ao modelo de fallback
-            var resultadoPrimario = await TryGenerateResponseAsync(geminiUrl, jsonPayload);
-            if (!string.IsNullOrWhiteSpace(resultadoPrimario))
+            // Tries the primary model; on failure, falls back to the secondary model
+            var primaryResult = await TryGenerateResponseAsync(geminiUrl, jsonPayload);
+            if (!string.IsNullOrWhiteSpace(primaryResult))
             {
-                logger.LogInformation("Resposta gerada pelo modelo Gemini primário: {Model}.", ExtrairModelo(geminiUrl));
-                return resultadoPrimario!;
+                logger.LogInformation("Answer generated by the primary Gemini model: {Model}.", ExtractModelName(geminiUrl));
+                return primaryResult!;
             }
 
-            logger.LogWarning("Modelo primário ({Model}) indisponível, tentando modelo de fallback ({FallbackModel}).",
-                ExtrairModelo(geminiUrl), ExtrairModelo(geminiFallbackUrl));
-            var resultadoFallback = await TryGenerateResponseAsync(geminiFallbackUrl, jsonPayload);
+            logger.LogWarning("Primary model ({Model}) unavailable, trying the fallback model ({FallbackModel}).",
+                ExtractModelName(geminiUrl), ExtractModelName(geminiFallbackUrl));
+            var fallbackResult = await TryGenerateResponseAsync(geminiFallbackUrl, jsonPayload);
 
-            if (!string.IsNullOrWhiteSpace(resultadoFallback))
+            if (!string.IsNullOrWhiteSpace(fallbackResult))
             {
-                logger.LogInformation("Resposta gerada pelo modelo Gemini fallback: {Model}.", ExtrairModelo(geminiFallbackUrl));
-                return resultadoFallback!;
+                logger.LogInformation("Answer generated by the fallback Gemini model: {Model}.", ExtractModelName(geminiFallbackUrl));
+                return fallbackResult!;
             }
 
-            logger.LogError("Falha ao obter resposta tanto do modelo primário ({Model}) quanto do fallback ({FallbackModel}).",
-                ExtrairModelo(geminiUrl), ExtrairModelo(geminiFallbackUrl));
+            logger.LogError("Failed to get an answer from both the primary ({Model}) and fallback ({FallbackModel}) models.",
+                ExtractModelName(geminiUrl), ExtractModelName(geminiFallbackUrl));
             return "Desculpe, estou com dificuldades para acessar meu cérebro de IA agora. Tente novamente em instantes.";
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Falha crítica ao tentar comunicação com o serviço do Gemini.");
+            logger.LogError(ex, "Critical failure while communicating with the Gemini service.");
             return "Ocorreu um erro no meu sistema de processamento de linguagem.";
         }
     }
 
-    private async Task<string?> ObterContextoCurriculoAsync()
+    /// <summary>
+    /// Builds the RAG context from the curriculum stored in Postgres, using an
+    /// in-memory cache (15 minutes TTL) to avoid hitting the database repeatedly.
+    /// </summary>
+    /// <returns>
+    /// The curriculum context, or <see langword="null"/> when the parameter does
+    /// not exist. Throws when the database is unreachable.
+    /// </returns>
+    private async Task<string?> GetCurriculumContextAsync()
     {
-        string cacheKey = $"iris:contexto:{paramKey}";
+        string cacheKey = $"iris:context:{paramKey}";
 
-        if (cache.TryGetValue(cacheKey, out string? contextoCache) && !string.IsNullOrWhiteSpace(contextoCache))
+        if (cache.TryGetValue(cacheKey, out string? cachedContext) && !string.IsNullOrWhiteSpace(cachedContext))
         {
-            return contextoCache;
+            return cachedContext;
         }
 
-        Parameter? parametro = await parameterRepository.GetByKeyAsync(paramKey);
-        if (parametro is null || string.IsNullOrWhiteSpace(parametro.ParamValue))
+        Parameter? parameter = await parameterRepository.GetByKeyAsync(paramKey);
+        if (parameter is null || string.IsNullOrWhiteSpace(parameter.ParamValue))
         {
             return null;
         }
 
-        cache.Set(cacheKey, parametro.ParamValue, ContextoCacheTtl);
-        return parametro.ParamValue;
+        cache.Set(cacheKey, parameter.ParamValue, ContextCacheTtl);
+        return parameter.ParamValue;
     }
 
+    /// <summary>
+    /// Calls the Gemini API for the given model URL and payload, returning the
+    /// generated text. Non-successful responses and HTTP failures yield
+    /// <see langword="null"/> (already logged).
+    /// </summary>
+    /// <param name="url">The full generateContent URL of the model.</param>
+    /// <param name="jsonPayload">The serialized request payload.</param>
+    /// <returns>The generated text, or <see langword="null"/> on failure.</returns>
     private async Task<string?> TryGenerateResponseAsync(string url, string jsonPayload)
     {
-        var urlComKey = $"{url}?key={apiKey}";
-        var conteudoHttp = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+        var urlWithKey = $"{url}?key={apiKey}";
+        var httpContent = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
         try
         {
-            using var respostaHttp = await httpClient.PostAsync(urlComKey, conteudoHttp);
+            using var httpResponse = await httpClient.PostAsync(urlWithKey, httpContent);
 
-            if (!respostaHttp.IsSuccessStatusCode)
+            if (!httpResponse.IsSuccessStatusCode)
             {
-                var erroDetalhado = await respostaHttp.Content.ReadAsStringAsync();
-                logger.LogError("Erro na chamada do Gemini API. URL: {Url}. Status: {Status}. Detalhes: {Erro}", url, respostaHttp.StatusCode, erroDetalhado);
+                var errorDetails = await httpResponse.Content.ReadAsStringAsync();
+                logger.LogError("Error calling the Gemini API. URL: {Url}. Status: {Status}. Details: {Error}", url, httpResponse.StatusCode, errorDetails);
                 return null;
             }
 
-            // Deserialização via Source Generator
-            var jsonResposta = await respostaHttp.Content.ReadAsStringAsync();
-            var resultadoGemini = JsonSerializer.Deserialize(jsonResposta, AppJsonContext.Default.GeminiResponse);
-            var textoResposta = resultadoGemini?.Candidates?[0].Content?.Parts?[0].Text;
+            // Deserialization via Source Generator
+            var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
+            var geminiResult = JsonSerializer.Deserialize(jsonResponse, AppJsonContext.Default.GeminiResponse);
+            var responseText = geminiResult?.Candidates?[0].Content?.Parts?[0].Text;
 
-            return textoResposta?.Trim() ?? "Não consegui formular uma resposta adequada. Pode perguntar de outra forma?";
+            return responseText?.Trim() ?? "Não consegui formular uma resposta adequada. Pode perguntar de outra forma?";
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Falha na requisição HTTP para o Gemini. URL: {Url}", url);
+            logger.LogError(ex, "HTTP request to the Gemini API failed. URL: {Url}", url);
             return null;
         }
     }
 
-    private static string ExtrairModelo(string url)
+    /// <summary>
+    /// Extracts the model name from a generateContent URL.
+    /// </summary>
+    /// <param name="url">The model URL containing /models/[name]:generateContent.</param>
+    /// <returns>The model name, or the full URL when it cannot be parsed.</returns>
+    private static string ExtractModelName(string url)
     {
         var marker = "/models/";
-        var indice = url.IndexOf(marker, StringComparison.Ordinal);
-        if (indice < 0) return url;
+        var index = url.IndexOf(marker, StringComparison.Ordinal);
+        if (index < 0) return url;
 
-        var trecho = url[(indice + marker.Length)..];
-        var fim = trecho.IndexOf(":generateContent", StringComparison.Ordinal);
-        return fim > 0 ? trecho[..fim] : trecho;
+        var segment = url[(index + marker.Length)..];
+        var end = segment.IndexOf(":generateContent", StringComparison.Ordinal);
+        return end > 0 ? segment[..end] : segment;
     }
 }
 
 // ==============================================================================
-// DTOs de Request (Gemini API)
+// Request DTOs (Gemini API)
 // ==============================================================================
+/// <summary>
+/// Payload sent to the Gemini generateContent API.
+/// </summary>
 public class GeminiRequest
 {
     [JsonPropertyName("systemInstruction")]
@@ -197,12 +237,18 @@ public class GeminiRequest
     public GeminiContent[]? Contents { get; set; }
 }
 
+/// <summary>
+/// System-level instruction block of a Gemini request.
+/// </summary>
 public class GeminiSystemInstruction
 {
     [JsonPropertyName("parts")]
     public GeminiPart[]? Parts { get; set; }
 }
 
+/// <summary>
+/// A conversational turn sent to the Gemini API.
+/// </summary>
 public class GeminiContent
 {
     [JsonPropertyName("role")]
@@ -212,6 +258,9 @@ public class GeminiContent
     public GeminiPart[]? Parts { get; set; }
 }
 
+/// <summary>
+/// A single text part of a Gemini message.
+/// </summary>
 public class GeminiPart
 {
     [JsonPropertyName("text")]
@@ -219,26 +268,38 @@ public class GeminiPart
 }
 
 // ==============================================================================
-// DTOs de Response (Gemini API)
+// Response DTOs (Gemini API)
 // ==============================================================================
+/// <summary>
+/// Response received from the Gemini generateContent API.
+/// </summary>
 public class GeminiResponse
 {
     [JsonPropertyName("candidates")]
     public Candidate[]? Candidates { get; set; }
 }
 
+/// <summary>
+/// A candidate answer returned by the Gemini API.
+/// </summary>
 public class Candidate
 {
     [JsonPropertyName("content")]
     public ContentNode? Content { get; set; }
 }
 
+/// <summary>
+/// Content node of a Gemini candidate.
+/// </summary>
 public class ContentNode
 {
     [JsonPropertyName("parts")]
     public PartNode[]? Parts { get; set; }
 }
 
+/// <summary>
+/// A text part of a Gemini candidate's content.
+/// </summary>
 public class PartNode
 {
     [JsonPropertyName("text")]

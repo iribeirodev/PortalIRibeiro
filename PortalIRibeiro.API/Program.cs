@@ -1,6 +1,6 @@
-using StackExchange.Redis;
-using DotNetEnv;
 using Microsoft.AspNetCore.HttpOverrides;
+using DotNetEnv;
+using StackExchange.Redis;
 using PortalIRibeiro.API.Features.Backoffice;
 using PortalIRibeiro.API.Features.Iris;
 using PortalIRibeiro.API.Features.Projects;

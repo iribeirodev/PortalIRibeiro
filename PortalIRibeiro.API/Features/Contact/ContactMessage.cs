@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PortalIRibeiro.API.Features.Contact;
 
+/// <summary>
+/// Represents a contact message submitted through the portal's contact form.
+/// </summary>
 [Table("mensagens_contato")]
 public class ContactMessage
 {
