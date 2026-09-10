@@ -92,6 +92,9 @@ builder.Services.AddScoped<TelemetryHandler>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IChatHistoryRepository, ChatHistoryRepository>();
 builder.Services.AddScoped<IVisitRepository, VisitRepository>();
+builder.Services.AddScoped<IParameterRepository, ParameterRepository>();
+
+builder.Services.AddMemoryCache();
 
 builder.Services.AddAuthorization();
 

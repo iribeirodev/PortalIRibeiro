@@ -1,7 +1,9 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using StackExchange.Redis;
+using Microsoft.Extensions.Caching.Memory;
+using PortalIRibeiro.API.Entities;
+using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 using PortalIRibeiro.API.Infrastructure.Serialization;
 
 namespace PortalIRibeiro.API.Features.Iris;
@@ -13,8 +15,13 @@ public class GeminiService(
     HttpClient httpClient,
     IConfiguration configuration,
     ILogger<GeminiService> logger,
-    IConnectionMultiplexer redis)
+    IMemoryCache cache,
+    IParameterRepository parameterRepository)
 {
+    private static readonly TimeSpan ContextoCacheTtl = TimeSpan.FromMinutes(15);
+
+    private const string SemAcessoMensagem = "Não tenho acesso aos dados do Itamar nesse momento.";
+
     private readonly string apiKey = configuration["Gemini:ApiKey"]
         ?? throw new InvalidOperationException("A chave de API do Gemini ('Gemini:ApiKey') não foi configurada.");
 
@@ -23,19 +30,17 @@ public class GeminiService(
 
     private readonly string geminiFallbackUrl = configuration["Gemini:FallbackBaseUrl"]
         ?? configuration["Gemini:BaseUrl"]
-        ?? throw new InvalidOperationException("A URL de fallback do Gemini ('Gemini:FallbackBaseUrl') não foi configurada.");            
+        ?? throw new InvalidOperationException("A URL de fallback do Gemini ('Gemini:FallbackBaseUrl') não foi configurada.");
 
-    private readonly string redisCacheKey = configuration["IrisSettings:RedisCacheKey"] ?? "curriculo:itamar";
+    private readonly string paramKey = configuration["IrisSettings:ParamKey"] ?? "curriculo:itamar";
 
-    private readonly string fallbackContexto = configuration["IrisSettings:FallbackContexto"] ?? string.Empty;
-    
     private readonly string systemInstruction = CarregarInstrucoes(logger);
 
     private static string CarregarInstrucoes(ILogger<GeminiService> log)
     {
-        var contextPath = Path.Combine(AppContext.BaseDirectory, 
-            "Features", 
-            "Iris", 
+        var contextPath = Path.Combine(AppContext.BaseDirectory,
+            "Features",
+            "Iris",
             "Context", "iris_instruction.md");
 
         if (File.Exists(contextPath))
@@ -48,20 +53,28 @@ public class GeminiService(
         log.LogWarning("Arquivo iris_instruction.md não encontrado em {Path}. Usando fallback em string.", contextPath);
         return "Você é a Íris, a assistente inteligente do portfólio de Itamar da Silva Ribeiro Junior. Desenvolvida estritamente com .NET 10 e Blazor.";
     }
-    
+
     public async Task<string> GenerateResponseAsync(string userQuestion)
     {
+        string? contextoRags;
         try
         {
-            var db = redis.GetDatabase();
-            string? contextoRags = await db.StringGetAsync(redisCacheKey);
+            contextoRags = await ObterContextoCurriculoAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Falha ao carregar o contexto do currículo do Postgres. Chave: {Key}", paramKey);
+            return SemAcessoMensagem;
+        }
 
-            if (string.IsNullOrEmpty(contextoRags))
-            {
-                logger.LogWarning("A chave '{CacheKey}' não retornou dados do Redis. Usando contexto básico.", redisCacheKey);
-                contextoRags = fallbackContexto;
-            }
+        if (string.IsNullOrWhiteSpace(contextoRags))
+        {
+            logger.LogWarning("Contexto do currículo não encontrado no Postgres. Chave: {Key}", paramKey);
+            return SemAcessoMensagem;
+        }
 
+        try
+        {
             // Payload fortemente tipado para Native AOT
             var payload = new GeminiRequest
             {
@@ -106,9 +119,28 @@ public class GeminiService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Falha crítica ao tentar comunicação com o serviço do Gemini ou Redis.");
+            logger.LogError(ex, "Falha crítica ao tentar comunicação com o serviço do Gemini.");
             return "Ocorreu um erro no meu sistema de processamento de linguagem.";
         }
+    }
+
+    private async Task<string?> ObterContextoCurriculoAsync()
+    {
+        string cacheKey = $"iris:contexto:{paramKey}";
+
+        if (cache.TryGetValue(cacheKey, out string? contextoCache) && !string.IsNullOrWhiteSpace(contextoCache))
+        {
+            return contextoCache;
+        }
+
+        Parameter? parametro = await parameterRepository.GetByKeyAsync(paramKey);
+        if (parametro is null || string.IsNullOrWhiteSpace(parametro.ParamValue))
+        {
+            return null;
+        }
+
+        cache.Set(cacheKey, parametro.ParamValue, ContextoCacheTtl);
+        return parametro.ParamValue;
     }
 
     private async Task<string?> TryGenerateResponseAsync(string url, string jsonPayload)
