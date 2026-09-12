@@ -52,23 +52,14 @@ Como funciona?
 
 ```mermaid
 flowchart TD
-    U[Visitante] -->|pergunta via chat| F[Frontend Angular 21]
-    F -->|"POST /api/iris/chat"| HI[IrisChatHandler]
-
-    HI -->|"gera resposta"| GS[GeminiService]
-    GS -->|"contexto RAG do currículo<br/>(cache em memória 15 min)"| PR[(PostgreSQL<br/>parâmetro curriculo:itamar)]
-    GS -->|"payload: instrução + contexto + pergunta"| G1[Google Gemini<br/>gemini-3.5-flash-lite]
-    G1 -.->|"indisponível / falha"| G2["Google Gemini<br/>gemini-3.6-flash (fallback)"]
-    G1 -->|"resposta"| GS
-    G2 -->|"resposta"| GS
-
-    GS -->|"resposta"| HI
-    HI -->|"persiste conversa<br/>(sessionId UUID)"| CH[(PostgreSQL<br/>chat_history)]
-    HI -->|"{ text, sessionId }"| F
-    F -->|"renderização Markdown"| C[Íris responde no chat]
+    U[Visitante] -->|faz uma pergunta no chat| F[Chat do portal]
+    F -->|"API envia pergunta + contexto do currículo"| G[Google Gemini]
+    G -->|"retorna a resposta"| F
+    F -->|"Íris responde ao visitante"| U
+    F -->|"conversa é salva"| B[(PostgreSQL)]
 ```
 
-O fluxo acima usa a seguinte topologia: o `GeminiService` monta o payload com as instruções de sistema (`iris_instruction.md`), o contexto RAG vindo do Postgres e a pergunta do usuário; tenta o modelo primário (`gemini-3.5-flash-lite`) e, em falha, troca automaticamente para o fallback (`gemini-3.6-flash`). A conversa é persistida no Postgres via `IrisChatHandler`.
+O `GeminiService` monta o payload com o contexto do currículo e a pergunta do usuário, tentando primeiro o modelo `gemini-3.5-flash-lite` e, em falha, o fallback `gemini-3.6-flash`. A conversa é persistida no PostgreSQL via `IrisChatHandler`.
 
 ---
 
