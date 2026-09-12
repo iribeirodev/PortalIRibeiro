@@ -28,6 +28,7 @@
 
   <!-- Configurações exclusivas para PRODUÇÃO (AOT / Release) -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishAot>true</PublishAot>
     <StripSymbols>true</StripSymbols>
     <NativeDebugSymbols>false</NativeDebugSymbols>
     <DebugSymbols>false</DebugSymbols>
