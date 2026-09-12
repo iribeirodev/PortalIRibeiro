@@ -58,7 +58,7 @@ flowchart TD
     HI -->|"gera resposta"| GS[GeminiService]
     GS -->|"contexto RAG do currículo<br/>(cache em memória 15 min)"| PR[(PostgreSQL<br/>parâmetro curriculo:itamar)]
     GS -->|"payload: instrução + contexto + pergunta"| G1[Google Gemini<br/>gemini-3.5-flash-lite]
-    G1 -.->|"indisponível / falha"| G2[Google Gemini<br/>gemini-3.6-flash (fallback)]
+    G1 -.->|"indisponível / falha"| G2["Google Gemini<br/>gemini-3.6-flash (fallback)"]
     G1 -->|"resposta"| GS
     G2 -->|"resposta"| GS
 
