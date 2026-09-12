@@ -47,3 +47,29 @@ Content-Type: {{contentType}}
 ### ------------------------------------------------------------------
 GET {{host}}/api/backoffice/projects
 Accept: {{contentType}}
+
+### ------------------------------------------------------------------
+### 5. Íris Chatbot - Limite diário atingido (Deve retornar 429 ErrorResponse)
+### O rate limit usa o IP do cliente: 10 perguntas/dia. Envie além do
+### limite para ver o 429 com header Retry-After (24h).
+### ------------------------------------------------------------------
+POST {{host}}/api/iris/chat
+Content-Type: {{contentType}}
+
+{
+  "sessaoId": "00000000-0000-0000-0000-000000000000",
+  "texto": "Pergunta que estoura o limite diário"
+}
+
+### ------------------------------------------------------------------
+### 6. Íris Chatbot - Redis indisponível (Fail-closed, deve retornar 503)
+### Com o Upstash fora do ar, o chat é BLOQUEADO (fail-closed): a API
+### não consegue verificar o rate limit e retorna 503 + Retry-After (2min).
+### ------------------------------------------------------------------
+POST {{host}}/api/iris/chat
+Content-Type: {{contentType}}
+
+{
+  "sessaoId": "00000000-0000-0000-0000-000000000000",
+  "texto": "Teste de fail-closed"
+}

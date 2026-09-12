@@ -8,6 +8,7 @@
 CREATE SCHEMA IF NOT EXISTS portal;
 
 DROP TABLE IF EXISTS portal.visits;
+DROP TABLE IF EXISTS portal.visit_cache;
 DROP TABLE IF EXISTS portal.projects;
 DROP TABLE IF EXISTS portal.chat_history;
 DROP TABLE IF EXISTS portal.parameters;
@@ -143,3 +144,20 @@ CREATE INDEX idx_visits_ip_address_accessed_at ON portal.visits USING btree (ip_
 CREATE INDEX idx_visits_visit_type_accessed_at ON portal.visits USING btree (visit_type, accessed_at DESC);
 
 COMMENT ON TABLE portal.visits IS 'Stores visitor telemetry collected by the portal.';
+
+-- ---------------------------------------------------------------------
+-- Visit deduplication cache
+-- ---------------------------------------------------------------------
+-- Short-lived cache that keeps the pair (ip_address + page) for a sliding
+-- window. Used to avoid counting repeated visits (and GeoIP lookups) when
+-- the same IP reloads the same page within the window. Rows older than the
+-- window are opportunistically deleted; nothing here is analytical data.
+CREATE TABLE portal.visit_cache (
+    ip_address    varchar(45)  NOT NULL, -- Visitor IP (IPv4 or IPv6).
+    page          varchar(200) NOT NULL, -- Portal page accessed by the visitor.
+    registered_at timestamptz  NOT NULL DEFAULT CURRENT_TIMESTAMP, -- UTC timestamp when the pair was cached.
+    CONSTRAINT visit_cache_pkey PRIMARY KEY (ip_address, page)
+);
+CREATE INDEX idx_visit_cache_registered_at ON portal.visit_cache USING btree (registered_at);
+
+COMMENT ON TABLE portal.visit_cache IS 'Deduplication cache for visit telemetry (single IP + page per window).';

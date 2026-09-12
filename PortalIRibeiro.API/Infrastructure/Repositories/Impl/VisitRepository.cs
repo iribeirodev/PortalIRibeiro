@@ -40,4 +40,40 @@ public class VisitRepository(NpgsqlConnectionFactory connectionFactory) : IVisit
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<bool> TryClaimCacheAsync(string ipAddress, string page, TimeSpan window, CancellationToken cancellationToken = default)
+    {
+        await using var connection = connectionFactory.CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        // Opportunistic cleanup (~5% of the calls) of entries that fell out of the
+        // window, so the short-lived cache never grows without a bound.
+        if (Random.Shared.Next(100) < 5)
+        {
+            const string cleanupSql = """
+                DELETE FROM portal.visit_cache
+                WHERE registered_at < @min_registered_at
+                """;
+
+            await using var cleanup = new NpgsqlCommand(cleanupSql, connection);
+            cleanup.Parameters.AddWithValue("@min_registered_at", DateTime.UtcNow.Subtract(window));
+            await cleanup.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        // Single atomic statement: INSERT only succeeds when the pair (ip + page)
+        // is not cached yet, so concurrent requests never both win the claim.
+        const string sql = """
+            INSERT INTO portal.visit_cache (ip_address, page)
+            VALUES (@ip_address, @page)
+            ON CONFLICT (ip_address, page) DO NOTHING
+            """;
+
+        await using var command = new NpgsqlCommand(sql, connection);
+
+        command.Parameters.AddWithValue("@ip_address", ipAddress);
+        command.Parameters.AddWithValue("@page", page);
+
+        return await command.ExecuteNonQueryAsync(cancellationToken) > 0;
+    }
 }

@@ -17,7 +17,7 @@ PortalIRibeiro/
 └── README.md                 # Documentação principal
 ```
 
-**Fluxo:** o usuário acessa o HTML estático servido pela Vercel. O Angular chama a API da Koyeb via proxy/rewrite em `/api/*` (mesma origem no browser, a Vercel reencaminha para a Koyeb); chat e telemetria são chamadas **client-side** (CORS liberado), sem intermediário. A API orquestra o RAG no Gemini, persiste histórico/visitas na Neon e usa Redis para cache e dedup de telemetria.
+**Fluxo:** o usuário acessa o HTML estático servido pela Vercel. O Angular chama a API da Koyeb via proxy/rewrite em `/api/*` (mesma origem no browser, a Vercel reencaminha para a Koyeb); chat e telemetria são chamadas **client-side** (CORS liberado), sem intermediário. A API orquestra o RAG no Gemini, persiste histórico/visitas na Neon e usa Redis para o **rate limit diário do chat da Íris**.
 
 ```mermaid
 flowchart LR
@@ -28,7 +28,7 @@ flowchart LR
 
     K -->|"RAG / prompts"| G[Google Gemini]
     K -->|"currículo · histórico · visitas"| N[(PostgreSQL Neon)]
-    K -->|"cache · dedup telemetria"| R[(Redis Upstash)]
+    K -->|"rate limit diário<br/>chat Íris (fail-closed)"| R[(Redis Upstash)]
 ```
 
 ## Módulos em Destaque
@@ -67,7 +67,7 @@ O `GeminiService` monta o payload com o contexto do currículo e a pergunta do u
 * Back-End: .NET 10 & C# 14 (Minimal APIs, Native AOT, Inversão de Dependência)
 * Front-End: Angular 21 (TypeScript), SPA de página única com componentes standalone
 * Banco de Dados Cloud: PostgreSQL Serverless hospedado na Neon.
-* Cache & Mensageria: Redis gerenciado em nuvem via Upstash.
+* Cache & Mensageria: Redis gerenciado em nuvem via Upstash (rate limit do chat da Íris).
 * Hospedagem API: Aplicação containerizada com Docker (Native AOT) e implantada na Koyeb (plano gratuito).
 * Hospedagem Front: Vercel (plano Hobby).
 
@@ -83,7 +83,7 @@ O frontend é uma **SPA Angular 21** renderizada totalmente no cliente (CSR), se
 - **Proxy local:** em dev (`ng serve`), o `proxy.conf.mjs` encaminha `/api` para `http://localhost:5125` (API local).
 - **Markdown:** as respostas do chat são renderizadas com `ngx-markdown`, reproduzindo a saída que o Blazor produzia com Markdig.
 - **Estilo:** Bootstrap 5 + Tailwind CSS 4 (PostCSS).
-- **Telemetria:** o registro de visita é deduplicado pela API por IP + página num cache Redis de 15 minutos.
+- **Telemetria:** o registro de visita é deduplicado pela API por IP + página na tabela-cache `portal.visit_cache` do Postgres, com janela de 15 minutos.
 
 ### Stack do frontend
 

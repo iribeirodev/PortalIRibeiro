@@ -1,6 +1,5 @@
-using System.Net;
-using StackExchange.Redis;
 using PortalIRibeiro.API.Entities;
+using PortalIRibeiro.API.Infrastructure.Http;
 using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 using PortalIRibeiro.API.Infrastructure.Serialization;
 
@@ -8,13 +7,12 @@ namespace PortalIRibeiro.API.Features.Telemetry;
 
 /// <summary>
 /// Processes visit telemetry: captures the client IP, deduplicates repeated
-/// visits through a Redis cache, enriches location data via the ip-api.com
-/// GeoIP service and persists the record.
+/// visits through a short-lived Postgres cache, enriches location data via
+/// the ip-api.com GeoIP service and persists the record.
 /// </summary>
 public class TelemetryHandler(
     IVisitRepository repository,
-    HttpClient httpClient,
-    IConnectionMultiplexer redis)
+    HttpClient httpClient)
 {
     /// <summary>
     /// Processes the registration of a new visit from the current HTTP request,
@@ -29,31 +27,15 @@ public class TelemetryHandler(
         CancellationToken cancellationToken = default)
     {
         // Tries to capture the real IP when the app is behind a Reverse Proxy (e.g. Vercel, Nginx, Cloudflare)
-        var forwardedFor = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        var rawIp = !string.IsNullOrWhiteSpace(forwardedFor)
-            ? forwardedFor.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()
-            : httpContext.Connection.RemoteIpAddress?.ToString();
+        string ip = ClientIpResolver.Resolve(httpContext);
 
-        // Validates whether the IP is syntactically correct and not a loopback IP (localhost/127.0.0.1)
-        bool isPublicIP = IPAddress.TryParse(rawIp, out var parsedIp)
-                          && !IPAddress.IsLoopback(parsedIp);
-
-        // The exact IP that will be stored in the database
-        string ipParaSalvar = isPublicIP && parsedIp is not null
-            ? parsedIp.ToString()
-            : "127.0.0.1";
+        // Normalizes the page before using it both in the deduplication key and in the persisted record
+        string page = string.IsNullOrWhiteSpace(request.Page) ? "/" : request.Page;
 
         // Avoids duplicate counting and unnecessary GeoIP API calls when the same IP
         // reloads the same page within less than 15 minutes
-        var cacheDb = redis.GetDatabase();
-        string cacheKey = $"telemetry:visit:{ipParaSalvar}:{request.Page}";
-
-        if (await cacheDb.KeyExistsAsync(cacheKey))
+        if (!await repository.TryClaimCacheAsync(ip, page, TimeSpan.FromMinutes(15), cancellationToken))
             return;
-
-        // Stores the key in Redis with a TTL (Time-To-Live) of 15 minutes
-        await cacheDb.StringSetAsync(cacheKey, "1", TimeSpan.FromMinutes(15));
-        // --------------------------------------------------------------------
 
         string country = "Unknown";
         string city = "Unknown";
@@ -63,8 +45,8 @@ public class TelemetryHandler(
         {
             // In production (Public IP): queries the visitor's exact IP on the external API.
             // In development (Local/Loopback IP): queries without an IP in the URL to geolocate the local outbound IP.
-            var url = isPublicIP
-                ? $"http://ip-api.com/json/{ipParaSalvar}?fields=status,country,regionName,city"
+            var url = ip != "127.0.0.1"
+                ? $"http://ip-api.com/json/{ip}?fields=status,country,regionName,city"
                 : "http://ip-api.com/json/?fields=status,country,regionName,city";
 
             // Optimized deserialization via System.Text.Json (Source Generators)
@@ -92,12 +74,12 @@ public class TelemetryHandler(
 
         await repository.RegisterAsync(new Visit
         {
-            IpAddress = ipParaSalvar,
+            IpAddress = ip,
             Country = country,
             City = city,
             Region = region,
-            Page = string.IsNullOrWhiteSpace(request.Page) ? "/" : request.Page,
-            UserAgent = httpContext.Request.Headers.UserAgent.ToString(),
+            Page = page,
+            UserAgent = userAgent,
             AccessedAt = DateTime.UtcNow,
             Referer = referer,
             VisitType = visitType,

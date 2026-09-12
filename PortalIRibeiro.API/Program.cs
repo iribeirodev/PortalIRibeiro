@@ -7,6 +7,7 @@ using PortalIRibeiro.API.Features.Projects;
 using PortalIRibeiro.API.Features.Telemetry;
 using PortalIRibeiro.API.Infrastructure.Data;
 using PortalIRibeiro.API.Infrastructure.Middleware;
+using PortalIRibeiro.API.Infrastructure.RateLimiting;
 using PortalIRibeiro.API.Infrastructure.Repositories.Impl;
 using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 using PortalIRibeiro.API.Infrastructure.Serialization;
@@ -51,6 +52,9 @@ redisOptions.AbortOnConnectFail = false; // Evita travar o boot se o Upstash dem
 redisOptions.ConnectTimeout = 5000;
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisOptions));
+
+// Rate limiting dos endpoints do portal (atualmente: chat da Íris)
+builder.Services.AddSingleton<IRateLimiter, RedisRateLimiter>();
 
 // Política de CORS
 builder.Services.AddCors(options =>
