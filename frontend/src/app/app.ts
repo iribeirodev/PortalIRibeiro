@@ -18,6 +18,13 @@ export class App implements AfterViewInit {
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
     }
+    this.stripUrlFragment();
+  }
+
+  private stripUrlFragment(): void {
+    if (location.hash) {
+      history.replaceState(null, '', location.pathname + location.search);
+    }
   }
 
   ngAfterViewInit(): void {
