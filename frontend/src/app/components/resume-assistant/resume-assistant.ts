@@ -87,7 +87,10 @@ export class ResumeAssistant implements OnDestroy {
     effect(() => {
       this.messages();
       this.isTyping();
-      this.scrollToBottom();
+      this.isChatOpen();
+      if (this.isChatOpen()) {
+        this.scrollToBottom();
+      }
     });
   }
 

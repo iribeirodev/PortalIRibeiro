@@ -21,7 +21,11 @@ export class Navbar {
     this.open.update((current) => !current);
   }
 
-  close(): void {
+  scrollTo(id: string, event: Event): void {
+    event.preventDefault();
     this.open.set(false);
+
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    history.replaceState(null, '', `#${id}`);
   }
 }

@@ -17,7 +17,7 @@
       <ul class="navbar-nav ms-auto my-2 my-lg-0">
         @for (item of navItems; track item.id) {
           <li class="nav-item">
-            <a class="nav-link" [attr.href]="'#' + item.id" (click)="close()">
+            <a class="nav-link" [attr.href]="'#' + item.id" (click)="scrollTo(item.id, $event)">
               {{ item.label }}
             </a>
           </li>

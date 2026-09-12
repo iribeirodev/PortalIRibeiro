@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component } from '@angular/core';
 import { Navbar } from './components/navbar/navbar';
 import { Hero } from './components/hero/hero';
 import { About } from './components/about/about';
@@ -13,4 +13,20 @@ import { Telemetry } from './components/telemetry/telemetry';
   imports: [Navbar, Hero, About, Laboratory, Services, Contact, ResumeAssistant, Telemetry],
   templateUrl: './app.html',
 })
-export class App {}
+export class App implements AfterViewInit {
+  constructor() {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+  }
+
+  ngAfterViewInit(): void {
+    this.resetScrollToTop();
+    requestAnimationFrame(() => this.resetScrollToTop());
+    setTimeout(() => this.resetScrollToTop(), 300);
+  }
+
+  private resetScrollToTop(): void {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }
+}
