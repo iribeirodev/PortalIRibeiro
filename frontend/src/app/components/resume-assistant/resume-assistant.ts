@@ -5,50 +5,11 @@ import { MarkdownComponent } from 'ngx-markdown';
 import { PortalApiService } from '../../services/portal-api.service';
 import type { ChatMessage } from '../../models/portal.models';
 
-const STORAGE_KEY = 'iris_usage_tracker';
-const LIMITE_MAXIMO = 10;
-
-interface ControleUsoIris {
-  quantidadePerguntas: number;
-  dataUso: string;
-}
-
-/**
- * Verifica se a data informada corresponde ao dia atual.
- * @param dataUso Data em formato ISO (string) armazenada no localStorage.
- * @returns `true` quando a data é hoje; caso contrário, `false`.
- */
-function isToday(dataUso: string): boolean {
-  const data = new Date(dataUso);
-  const agora = new Date();
-  return (
-    data.getFullYear() === agora.getFullYear() &&
-    data.getMonth() === agora.getMonth() &&
-    data.getDate() === agora.getDate()
-  );
-}
-
 /**
  * Retorna o timestamp atual no formato ISO 8601 (UTC).
  */
 function nowIso(): string {
   return new Date().toISOString();
-}
-
-/**
- * Lê o controle de uso diário da Íris persistido no localStorage.
- * @returns O controle salvo, ou `null` quando inexistente/corrompido.
- */
-function loadUsageControl(): ControleUsoIris | null {
-  try {
-    const json = localStorage.getItem(STORAGE_KEY);
-    if (json) {
-      return JSON.parse(json) as ControleUsoIris;
-    }
-    return null;
-  } catch {
-    return null;
-  }
 }
 
 @Component({
@@ -58,8 +19,6 @@ function loadUsageControl(): ControleUsoIris | null {
 })
 export class ResumeAssistant implements OnDestroy {
   private readonly api = inject(PortalApiService);
-
-  protected readonly LIMITE_MAXIMO = LIMITE_MAXIMO;
 
   protected readonly isChatOpen = signal(false);
   protected readonly isTyping = signal(false);
@@ -71,7 +30,6 @@ export class ResumeAssistant implements OnDestroy {
       timestamp: nowIso(),
     },
   ]);
-  protected readonly perguntasFeitas = signal(0);
 
   private sessionId: string = crypto.randomUUID();
   private streamSubscription: Subscription | null = null;
@@ -79,11 +37,6 @@ export class ResumeAssistant implements OnDestroy {
   private readonly messagesEnd = viewChild<ElementRef<HTMLDivElement>>('messagesEnd');
 
   constructor() {
-    const controle = loadUsageControl();
-    this.perguntasFeitas.set(
-      controle && isToday(controle.dataUso) ? controle.quantidadePerguntas : 0,
-    );
-
     effect(() => {
       this.messages();
       this.isTyping();
@@ -112,44 +65,18 @@ export class ResumeAssistant implements OnDestroy {
       return;
     }
 
-    const atual = loadUsageControl();
-    const perguntas =
-      atual && isToday(atual.dataUso) ? atual.quantidadePerguntas : 0;
-    const atingido = perguntas >= LIMITE_MAXIMO;
-
     this.userInput.set('');
     this.appendMessage(text, true);
     this.isTyping.set(true);
-
-    if (atingido) {
-      void this.limitReached(perguntas);
-      return;
-    }
 
     void this.streamResponse(text);
   }
 
   /**
-   * Exibe a mensagem de limite diário atingido após uma pequena pausa.
-   * @param perguntas Quantidade de perguntas já realizadas hoje.
-   */
-  private async limitReached(perguntas: number): Promise<void> {
-    await new Promise((r) => setTimeout(r, 800));
-    this.appendMessage(
-      `Você já realizou **${perguntas} de ${LIMITE_MAXIMO} perguntas** hoje. Para garantir a disponibilidade do serviço para outros recrutadores, o limite diário foi atingido. Que tal avaliarmos mais do trabalho do Itamar direto no GitHub ou agendarmos uma conversa?`,
-      false,
-    );
-    this.isTyping.set(false);
-  }
-
-  /**
    * Envia a mensagem à API da Íris e incorpora a resposta na conversa.
-   * Ao concluir com sucesso, incrementa o contador de uso diário.
    * @param text Texto da pergunta enviada pelo usuário.
    */
   private async streamResponse(text: string): Promise<void> {
-    let countUsage = true;
-
     this.streamSubscription = this.api.sendChat(this.sessionId, text).subscribe({
       next: (response) => {
         if (response.sessionId) {
@@ -161,14 +88,18 @@ export class ResumeAssistant implements OnDestroy {
           this.appendMessage(textResponse, false);
         }
       },
-      error: () => {
-        this.appendMessage('Erro de conexão ao tentar falar com o servidor da Íris.', false);
+      error: (err) => {
+        // A API já impõe o limite diário e o fail-closed no backend; aqui só
+        // repassamos a mensagem do servidor quando ela estiver disponível.
+        const serverMessage = (err as { error?: { message?: string } } | null)?.error?.message;
+        this.appendMessage(
+          serverMessage ?? 'Erro de conexão ao tentar falar com o servidor da Íris.',
+          false,
+        );
         this.isTyping.set(false);
+        this.streamSubscription = null;
       },
       complete: () => {
-        if (countUsage) {
-          this.incrementUsageCounter();
-        }
         this.isTyping.set(false);
         this.streamSubscription = null;
       },
@@ -185,31 +116,6 @@ export class ResumeAssistant implements OnDestroy {
       ...prev,
       { text, isUser, timestamp: nowIso() },
     ]);
-  }
-
-  /**
-   * Incrementa o controle de uso diário no localStorage, respeitando o dia
-   * corrente. Falhas de armazenamento são silenciadas.
-   */
-  private incrementUsageCounter(): void {
-    try {
-      const atual = loadUsageControl();
-      let novo: ControleUsoIris;
-
-      if (atual && isToday(atual.dataUso)) {
-        novo = {
-          ...atual,
-          quantidadePerguntas: atual.quantidadePerguntas + 1,
-        };
-      } else {
-        novo = { quantidadePerguntas: 1, dataUso: nowIso() };
-      }
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(novo));
-      this.perguntasFeitas.set(novo.quantidadePerguntas);
-    } catch {
-      // ignora falhas de armazenamento
-    }
   }
 
   /**
