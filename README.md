@@ -19,7 +19,17 @@ PortalIRibeiro/
 
 **Fluxo:** o usuário acessa o HTML estático servido pela Vercel. O Angular chama a API da Koyeb via proxy/rewrite em `/api/*` (mesma origem no browser, a Vercel reencaminha para a Koyeb); chat e telemetria são chamadas **client-side** (CORS liberado), sem intermediário. A API orquestra o RAG no Gemini, persiste histórico/visitas na Neon e usa Redis para cache e dedup de telemetria.
 
-![Fluxo de dados da arquitetura](assets/diagrama-0.gif)
+```mermaid
+flowchart LR
+    U[Visitante / Recrutador] -->|HTTPS| V[Vercel<br/>SPA Angular 21]
+
+    V -->|"/api/* (rewrite) – projetos<br/>(mesma origem)"| K[API .NET 10 / Native AOT<br/>Koyeb]
+    V -->|"chat Íris + telemetria<br/>(client-side, CORS)"| K
+
+    K -->|"RAG / prompts"| G[Google Gemini]
+    K -->|"currículo · histórico · visitas"| N[(PostgreSQL Neon)]
+    K -->|"cache · dedup telemetria"| R[(Redis Upstash)]
+```
 
 ## Módulos em Destaque
 
@@ -40,7 +50,25 @@ Como funciona?
 
 ### Fluxo de processamento de perguntas e respostas
 
-![Fluxo de perguntas e respostas da Íris](assets/diagrama-1.gif)
+```mermaid
+flowchart TD
+    U[Visitante] -->|pergunta via chat| F[Frontend Angular 21]
+    F -->|"POST /api/iris/chat"| HI[IrisChatHandler]
+
+    HI -->|"gera resposta"| GS[GeminiService]
+    GS -->|"contexto RAG do currículo<br/>(cache em memória 15 min)"| PR[(PostgreSQL<br/>parâmetro curriculo:itamar)]
+    GS -->|"payload: instrução + contexto + pergunta"| G1[Google Gemini<br/>gemini-3.5-flash-lite]
+    G1 -.->|"indisponível / falha"| G2[Google Gemini<br/>gemini-3.6-flash (fallback)]
+    G1 -->|"resposta"| GS
+    G2 -->|"resposta"| GS
+
+    GS -->|"resposta"| HI
+    HI -->|"persiste conversa<br/>(sessionId UUID)"| CH[(PostgreSQL<br/>chat_history)]
+    HI -->|"{ text, sessionId }"| F
+    F -->|"renderização Markdown"| C[Íris responde no chat]
+```
+
+O fluxo acima usa a seguinte topologia: o `GeminiService` monta o payload com as instruções de sistema (`iris_instruction.md`), o contexto RAG vindo do Postgres e a pergunta do usuário; tenta o modelo primário (`gemini-3.5-flash-lite`) e, em falha, troca automaticamente para o fallback (`gemini-3.6-flash`). A conversa é persistida no Postgres via `IrisChatHandler`.
 
 ---
 
@@ -75,42 +103,3 @@ O frontend é uma **SPA Angular 21** renderizada totalmente no cliente (CSR), se
 | Dados | `portal-api.service.ts` (fetch via `HttpClient`), `portal.models.ts` |
 | Markdown | `ngx-markdown` |
 | Testes | Vitest (`ng test`, via `@angular/build:unit-test`) |
-
-## Notas sobre a execução local do projeto
-
-Pré-requisitos
-* SDK do .NET 10 instalado (para a API).
-* Node.js 20+ (para o frontend).
-* Docker ativo na máquina (ambiente Linux testado em base Ubuntu).
-* Rider IDE ou um editor de código de sua preferência (como VS Code) com suporte a C#.
-
-### API (.NET)
-
-```bash
-cp docs/.env.sample .env    # ajuste as conexões locais (Postgres/Redis/Gemini)
-dotnet run --project PortalIRibeiro.API   # http://localhost:5125
-```
-
-Alternativa com Docker: `PortalIRibeiro.API/run-container.sh` (lê o `.env` e expõe na porta 5000).
-
-### Frontend (Angular)
-
-```bash
-cd frontend
-npm install
-npm run start               # http://localhost:4200 (proxieia /api para :5125)
-```
-
-### Deploy na Vercel
-
-O projeto Angular está em `frontend/` (Root Directory do projeto Vercel). O `frontend/vercel.json` define `buildCommand: npm run build`, `outputDirectory: dist/frontend-angular/browser` e o rewrite de `/api/*` para a Koyeb.
-
-```
-https://portaliribeiro-api.koyeb.app/
-```
-
-> O rewrite é automático via `vercel.json` — não é necessário definir `NEXT_PUBLIC_API_BASE_URL` (variável da antiga versão Next.js, descontinuada nesta stack).
-
-### Deploy da API na Koyeb
-
-O `Dockerfile` raiz publica a API como binário **Native AOT** e expõe a porta `8080`. No serviço Koyeb (deploy por Git na branch `main`), defina as variáveis de ambiente documentadas em [`docs/.env.sample`](./docs/.env.sample) — seção *KOYEB (PRODUÇÃO)* — como `ConnectionStrings__DefaultConnection`, `ConnectionStrings__Redis`, `Gemini__ApiKey` e `ASPNETCORE_ENVIRONMENT=Production`.
