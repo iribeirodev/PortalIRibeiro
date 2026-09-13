@@ -54,7 +54,7 @@ body {
     color: var(--primary);
 }
 
-/* Hero Section */
+/* Seção Hero */
 .hero {
     height: 100vh;
     min-height: 100vh;
@@ -118,7 +118,7 @@ body {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
-/* About Section */
+/* Seção Sobre */
 .about {
     padding: 80px 0;
     background-color: white;
@@ -202,7 +202,7 @@ body {
     font-weight: bold;
 }
 
-/* Laboratory Section */
+/* Seção Laboratório */
 .laboratory {
     padding: 80px 0;
     background-color: var(--light);
@@ -281,7 +281,7 @@ body {
     font-size: 0.95rem;
 }
 
-/* Services Section */
+/* Seção Serviços */
 .services {
     padding: 80px 0;
     background-color: white;
@@ -322,13 +322,13 @@ body {
     line-height: 1.6;
 }
 
-/* Footer */
+/* Rodapé */
 footer {
     padding: 20px 0;
     text-align: center;
 }
 
-/* Animations */
+/* Animações */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -340,7 +340,7 @@ footer {
     }
 }
 
-/* Responsive */
+/* Responsivo */
 @media (max-width: 768px) {
     .hero h1 {
         font-size: 2.5rem;
@@ -388,7 +388,7 @@ footer {
 
 
 /* ==========================================
-   ESTILOS DO LOADING INICIAL (PORTAL)
+   LOADING INICIAL DO PORTAL
    ========================================== */
 .loading-container {
     display: flex;

@@ -3,15 +3,14 @@ using StackExchange.Redis;
 namespace PortalIRibeiro.API.Infrastructure.RateLimiting;
 
 /// <summary>
-/// Redis-backed rate limiter with a fixed window, implemented with a single
-/// atomic <c>INCR</c> plus an <c>EXPIRE</c> that arms the window on the first
-/// increment. Once the window expires, the key disappears by itself and the
-/// counter resets for the next day.
+/// Limitador de requisições com janela fixa no Redis, implementado com um
+/// <c>INCR</c> atômico mais um <c>EXPIRE</c> que arma a janela no primeiro
+/// incremento. Quando a janela expira, a chave some e o contador zera.
 /// </summary>
 /// <remarks>
-/// Fail-closed: when the Redis connection is unavailable, <see cref="TryAcquireAsync"/>
-/// throws instead of silently allowing the request, so the caller must block
-/// the request while the rate limit cannot be verified.
+/// Fail-closed: sem conexão com o Redis, <see cref="TryAcquireAsync"/> lança
+/// erro em vez de permitir a requisição silenciosamente, fazendo o chamador
+/// bloquear o pedido enquanto o limite não pode ser verificado.
 /// </remarks>
 public sealed class RedisRateLimiter(IConnectionMultiplexer redis) : IRateLimiter
 {
@@ -25,8 +24,8 @@ public sealed class RedisRateLimiter(IConnectionMultiplexer redis) : IRateLimite
 
         IDatabase db = redis.GetDatabase();
 
-        // INCR is atomic as a single command; only one concurrent request ever
-        // receives count == 1, arming the window for everyone else.
+        // INCR é atômico: apenas a primeira requisição concorrente recebe
+        // count == 1, armando a janela para as demais.
         long count = await db.StringIncrementAsync(key);
 
         if (count == 1)

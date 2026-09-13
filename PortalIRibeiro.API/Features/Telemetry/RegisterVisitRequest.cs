@@ -1,12 +1,12 @@
 namespace PortalIRibeiro.API.Features.Telemetry;
 
 /// <summary>
-/// Payload submitted by the client when reporting a page visit.
+/// Payload enviado pelo cliente ao reportar uma visita de página.
 /// </summary>
 public record RegisterVisitRequest
 {
     /// <summary>
-    /// The page path that was visited.
+    /// Caminho da página visitada.
     /// </summary>
     public string Page { get; init; } = string.Empty;
 }

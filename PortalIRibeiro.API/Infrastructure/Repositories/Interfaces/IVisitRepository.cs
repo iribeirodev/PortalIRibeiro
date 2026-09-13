@@ -3,32 +3,32 @@ using PortalIRibeiro.API.Entities;
 namespace PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 
 /// <summary>
-/// Defines persistence operations for visitor telemetry records.
+/// Operações de persistência dos registros de telemetria de visitas.
 /// </summary>
 public interface IVisitRepository
 {
     /// <summary>
-    /// Registers a visitor telemetry record in the data store.
+    /// Registra um registro de telemetria de visita no banco de dados.
     /// </summary>
-    /// <param name="visit">The visitor telemetry record to persist.</param>
-    /// <param name="cancellationToken">A token used to cancel the asynchronous operation.</param>
-    /// <returns>A task representing the asynchronous persistence operation.</returns>
+    /// <param name="visit">Registro de visita a persistir.</param>
+    /// <param name="cancellationToken">Token para cancelar a operação assíncrona.</param>
+    /// <returns>Uma task que representa a operação assíncrona de persistência.</returns>
     Task RegisterAsync(
             Visit visit,
             CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Atomically claims the <c>ip_address + page</c> pair in the visit
-    /// deduplication cache. Returns <see langword="true"/> when the pair
-    /// was not cached yet (i.e. the visit should be recorded), or
-    /// <see langword="false"/> when the same pair was claimed within the
-    /// current window (i.e. the visit is a duplicate).
+    /// Reivindica atomicamente o par <c>ip_address + page</c> no cache de
+    /// deduplicação de visitas. Retorna <see langword="true"/> quando o par
+    /// ainda não estava em cache (a visita deve ser registrada), ou
+    /// <see langword="false"/> quando o par já foi reivindicado dentro da
+    /// janela atual (visita duplicada).
     /// </summary>
-    /// <param name="ipAddress">The normalized visitor IP address.</param>
-    /// <param name="page">The normalized accessed page.</param>
-    /// <param name="window">The time window for which the pair stays claimed.</param>
-    /// <param name="cancellationToken">A token used to cancel the asynchronous operation.</param>
-    /// <returns><see langword="true"/> when the pair was inserted; otherwise <see langword="false"/>.</returns>
+    /// <param name="ipAddress">Endereço IP do visitante normalizado.</param>
+    /// <param name="page">Página acessada normalizada.</param>
+    /// <param name="window">Período durante o qual o par permanece reivindicado.</param>
+    /// <param name="cancellationToken">Token para cancelar a operação assíncrona.</param>
+    /// <returns><see langword="true"/> quando o par foi inserido; senão <see langword="false"/>.</returns>
     Task<bool> TryClaimCacheAsync(
             string ipAddress,
             string page,

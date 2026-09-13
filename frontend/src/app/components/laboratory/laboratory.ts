@@ -23,8 +23,8 @@ export class Laboratory {
   }
 
   /**
-   * Carrega os projetos do laboratório, usando cache em memória de 1h para
-   * evitar chamadas repetidas à API dentro da mesma sessão.
+   * Carrega os projetos do laboratório, com cache em memória de 1h para
+   * evitar chamadas repetidas à API na mesma sessão.
    */
   private async load(): Promise<void> {
     const now = Date.now();

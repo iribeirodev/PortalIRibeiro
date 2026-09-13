@@ -8,24 +8,21 @@ using PortalIRibeiro.API.Infrastructure.Middleware;
 namespace PortalIRibeiro.API.Infrastructure.Serialization;
 
 /// <summary>
-/// Source-generated <see cref="JsonSerializerContext"/> que centraliza os contratos
-/// de serialização JSON dos tipos de request/response do portal. Inserido como
-/// primeiro resolver em <see cref="Program"/> (HTTP JSON options), dispensa reflexão
-/// em runtime — essencial para Native AOT.
+/// Contexto source-generated de serialização JSON dos tipos do portal.
+/// Essencial para Native AOT, pois dispensa reflexão em runtime.
 /// </summary>
 /// <remarks>
-/// O Native AOT não suporta geração de código em tempo de execução (reflexão/IL emit),
-/// então o <see cref="System.Text.Json"/> precisa de metadados conhecidos em tempo de
-/// compilação para serializar e desserializar. Sem esse contexto source-generated, a
-/// serialização cai em modos reflexivos que não funcionam no binário AOT, resultando em
-/// <c>NotSupportedException</c> — por isso a serialização é pré-compilada aqui.
+/// O Native AOT não suporta geração de código em tempo de execução; o
+/// <see cref="System.Text.Json"/> precisa destes metadados pré-compilados
+/// para serializar/desserializar. Sem eles, a serialização cai em modos
+/// reflexivos que quebram no binário AOT (<c>NotSupportedException</c>).
 /// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
 )]
 
-// --- Gemini / Chat DTOs ---
+// --- Gemini / Chat ---
 [JsonSerializable(typeof(ChatRequest))]  
 [JsonSerializable(typeof(ChatResponse))]
 [JsonSerializable(typeof(GeminiRequest))]

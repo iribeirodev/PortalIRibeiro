@@ -7,14 +7,14 @@ using PortalIRibeiro.API.Infrastructure.Serialization;
 namespace PortalIRibeiro.API.Features.Iris;
 
 /// <summary>
-/// Maps the Iris chatbot HTTP endpoints.
+/// Mapeia os endpoints HTTP do chatbot Íris.
 /// </summary>
 public static class IrisEndpoints
 {
     /// <summary>
-    /// Maps the Iris endpoint group (e.g. POST /api/iris/chat).
+    /// Mapeia o grupo de endpoints da Íris (ex.: POST /api/iris/chat).
     /// </summary>
-    /// <param name="endpoints">The endpoint route builder.</param>
+    /// <param name="endpoints">Construtor de rotas de endpoints.</param>
     public static void MapIrisEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("api/iris").WithTags("Iris Chatbot");
@@ -56,7 +56,7 @@ public static class IrisEndpoints
             }
             catch (Exception ex)
             {
-                // Fail-closed: while the rate limit cannot be verified, the chat is blocked
+                // Fail-closed: sem rate limit verificável, o chat fica bloqueado
                 logger.LogError(ex, "Fail-closed: rate limit do Íris indisponível no Redis para o IP {ClientIp}.", clientIp);
 
                 httpContext.Response.Headers["Retry-After"] = (2 * 60).ToString();

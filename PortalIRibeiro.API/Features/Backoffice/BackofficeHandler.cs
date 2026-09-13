@@ -3,15 +3,15 @@ using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 namespace PortalIRibeiro.API.Features.Backoffice;
 
 /// <summary>
-/// Handles the administrative (backoffice) project operations.
+/// Operações administrativas de projetos (backoffice).
 /// </summary>
-/// <param name="projectRepository">Repository used to access the projects.</param>
+/// <param name="projectRepository">Repositório usado para acessar os projetos.</param>
 public class BackofficeHandler(IProjectRepository projectRepository)
 {
     /// <summary>
-    /// Retrieves the active projects, ordered by creation date (most recent first).
+    /// Busca os projetos ativos, ordenados por data de criação (mais recentes primeiro).
     /// </summary>
-    /// <returns>The list of active projects.</returns>
+    /// <returns>Lista de projetos ativos.</returns>
     public async Task<List<PortalIRibeiro.API.Entities.Project>> GetActiveProjectsAsync()
         => await projectRepository.GetActiveProjectsAsync();
 

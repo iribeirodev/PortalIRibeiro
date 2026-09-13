@@ -3,15 +3,15 @@ using PortalIRibeiro.API.Entities;
 namespace PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 
 /// <summary>
-/// Defines persistence operations for project records.
+/// Operações de persistência dos projetos.
 /// </summary>
 public interface IProjectRepository
 {
     /// <summary>
-    /// Retrieves the active projects, ordered by creation date (most recent first).
+    /// Busca os projetos ativos, ordenados por data de criação (mais recentes primeiro).
     /// </summary>
-    /// <param name="cancellationToken">A token used to cancel the asynchronous operation.</param>
-    /// <returns>The list of active projects.</returns>
+    /// <param name="cancellationToken">Token para cancelar a operação assíncrona.</param>
+    /// <returns>Lista de projetos ativos.</returns>
     Task<List<Project>> GetActiveProjectsAsync(
         CancellationToken cancellationToken = default);
 }

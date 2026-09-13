@@ -47,8 +47,8 @@ public class VisitRepository(NpgsqlConnectionFactory connectionFactory) : IVisit
         await using var connection = connectionFactory.CreateConnection();
         await connection.OpenAsync(cancellationToken);
 
-        // Opportunistic cleanup (~5% of the calls) of entries that fell out of the
-        // window, so the short-lived cache never grows without a bound.
+        // Limpeza pontual (~5% das chamadas) de entradas que saíram da janela,
+        // para o cache curto nunca crescer sem limite.
         if (Random.Shared.Next(100) < 5)
         {
             const string cleanupSql = """
@@ -61,8 +61,8 @@ public class VisitRepository(NpgsqlConnectionFactory connectionFactory) : IVisit
             await cleanup.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        // Single atomic statement: INSERT only succeeds when the pair (ip + page)
-        // is not cached yet, so concurrent requests never both win the claim.
+        // Só tem sucesso quando o par (ip + página) ainda não
+        // está em cache, então requisições concorrentes nunca reivindicam juntas.
         const string sql = """
             INSERT INTO portal.visit_cache (ip_address, page)
             VALUES (@ip_address, @page)

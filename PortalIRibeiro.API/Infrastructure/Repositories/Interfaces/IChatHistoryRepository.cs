@@ -3,16 +3,16 @@ using PortalIRibeiro.API.Entities;
 namespace PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 
 /// <summary>
-/// Defines persistence operations for chat history records.
+/// Operações de persistência do histórico de conversas.
 /// </summary>
 public interface IChatHistoryRepository
 {
     /// <summary>
-    /// Persists a chat interaction record in the data store.
+    /// Salva um registro de interação de chat no banco de dados.
     /// </summary>
-    /// <param name="chatHistory">The chat interaction record to persist.</param>
-    /// <param name="cancellationToken">A token used to cancel the asynchronous operation.</param>
-    /// <returns>A task representing the asynchronous persistence operation.</returns>
+    /// <param name="chatHistory">Registro de interação do chat a persistir.</param>
+    /// <param name="cancellationToken">Token para cancelar a operação assíncrona.</param>
+    /// <returns>Uma task que representa a operação assíncrona de persistência.</returns>
     Task AddAsync(ChatHistory chatHistory,
                             CancellationToken cancellationToken = default);
 }

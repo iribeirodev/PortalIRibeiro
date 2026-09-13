@@ -1,19 +1,19 @@
 namespace PortalIRibeiro.API.Features.Telemetry;
 
 /// <summary>
-/// Classifies visitor requests as human, crawler, social crawler or bot
-/// based on the HTTP user-agent header.
+/// Classifica as visitas como humanas, crawlers, social crawlers ou bots
+/// a partir do header HTTP user-agent.
 /// </summary>
 public static class VisitClassifier
 {
     /// <summary>
-    /// Determines the visit type and the identified bot name from the user-agent.
+    /// Determina o tipo de visita e o nome do bot identificado pelo user-agent.
     /// </summary>
-    /// <param name="userAgent">The HTTP user-agent header value.</param>
+    /// <param name="userAgent">Valor do header HTTP user-agent.</param>
     /// <returns>
-    /// A tuple with the visit type (<c>human</c>, <c>crawler</c>,
-    /// <c>social_crawler</c>, <c>bot</c> or <c>unknown</c>) and the bot name
-    /// when a known crawler is detected, otherwise <see langword="null"/>.
+    /// Tupla com o tipo de visita (<c>human</c>, <c>crawler</c>,
+    /// <c>social_crawler</c>, <c>bot</c> ou <c>unknown</c>) e o nome do bot
+    /// quando um crawler conhecido é detectado; senão, <see langword="null"/>.
     /// </returns>
     public static (string VisitType, string? BotName) Classify(string? userAgent)
     {
@@ -41,10 +41,10 @@ public static class VisitClassifier
     }
 
     /// <summary>
-    /// Determines whether a user-agent contains common crawler indicators.
+    /// Verifica se o user-agent contém indicadores comuns de crawler.
     /// </summary>
-    /// <param name="userAgent">A normalized, lowercase user-agent string.</param>
-    /// <returns><c>true</c> when the user-agent contains a known crawler indicator; otherwise, <c>false</c>.</returns>
+    /// <param name="userAgent">User-agent normalizado, em minúsculas.</param>
+    /// <returns><c>true</c> se houver indicador de crawler; senão, <c>false</c>.</returns>
     private static bool LooksLikeCrawler(string userAgent)
     {
         string[] crawlerIndicators =

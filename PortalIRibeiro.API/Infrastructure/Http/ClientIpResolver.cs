@@ -3,18 +3,18 @@ using System.Net;
 namespace PortalIRibeiro.API.Infrastructure.Http;
 
 /// <summary>
-/// Resolves the real client IP, honoring the <c>X-Forwarded-For</c> header
-/// set by reverse proxies (e.g. Vercel, Nginx, Cloudflare, Koyeb).
+/// Obtém o IP real do cliente, respeitando o header <c>X-Forwarded-For</c>
+/// configurado por proxies reversos (ex.: Vercel, Nginx, Cloudflare, Koyeb).
 /// </summary>
 public static class ClientIpResolver
 {
     /// <summary>
-    /// Extracts the client IP from the current HTTP context.
+    /// Extrai o IP do cliente do contexto HTTP atual.
     /// </summary>
-    /// <param name="context">The current HTTP context.</param>
+    /// <param name="context">Contexto HTTP atual.</param>
     /// <returns>
-    /// The normalized client IP, or <c>127.0.0.1</c> when the IP is malformed
-    /// or a loopback address.
+    /// IP do cliente normalizado, ou <c>127.0.0.1</c> quando o IP é inválido
+    /// ou um endereço de loopback.
     /// </returns>
     public static string Resolve(HttpContext context)
     {

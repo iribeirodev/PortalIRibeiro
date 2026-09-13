@@ -31,14 +31,14 @@ public sealed class ExceptionHandlingMiddleware(
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "application/json";
 
-            // DTO fortemente tipado para Native AOT
+            // DTO tipado para Native AOT
             var payload = new ErrorResponse(
                 Success: false,
                 Message: message,
                 Detail: environment.IsDevelopment() ? ex.Message : null
             );
 
-            // Serialização usando o Source Generator do AppJsonContext
+            // Serializa usando o Source Generator do AppJsonContext
             await context.Response.WriteAsync(JsonSerializer.Serialize(payload, AppJsonContext.Default.ErrorResponse));
         }
     }

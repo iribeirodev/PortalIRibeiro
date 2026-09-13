@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace PortalIRibeiro.API.Entities;
 
 /// <summary>
-/// Entity that represents the conversation history between the user and the Iris AI, storing questions, answers and interaction metadata.
+/// Histórico da conversa entre o usuário e a Íris (perguntas, respostas e metadados).
 /// </summary>
 [Table("chat_history")]
 public class ChatHistory

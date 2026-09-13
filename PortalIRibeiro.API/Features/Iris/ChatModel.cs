@@ -1,33 +1,33 @@
 namespace PortalIRibeiro.API.Features.Iris;
 
 /// <summary>
-/// Request payload for the Iris chat endpoint.
+/// Payload de requisição do endpoint de chat da Íris.
 /// </summary>
 public class ChatRequest
 {
     /// <summary>
-    /// Identifier used to group the conversation interactions.
+    /// Identificador usado para agrupar as interações da conversa.
     /// </summary>
     public Guid SessionId { get; set; }
 
     /// <summary>
-    /// The user's message sent to Iris.
+    /// Mensagem do usuário enviada à Íris.
     /// </summary>
     public string Text { get; set; } = string.Empty;
 }
 
 /// <summary>
-/// Response payload returned by the Iris chat endpoint.
+/// Payload de resposta do endpoint de chat da Íris.
 /// </summary>
 public class ChatResponse
 {
     /// <summary>
-    /// Identifier of the conversation session, echoed back to the client.
+    /// Identificador da sessão de conversa, devolvido ao cliente.
     /// </summary>
     public Guid SessionId { get; set; }
 
     /// <summary>
-    /// The AI-generated answer.
+    /// Resposta gerada pela IA.
     /// </summary>
     public string Text { get; set; } = string.Empty;
 }

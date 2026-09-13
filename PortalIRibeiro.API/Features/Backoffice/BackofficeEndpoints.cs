@@ -1,20 +1,20 @@
 namespace PortalIRibeiro.API.Features.Backoffice;
 
 /// <summary>
-/// Maps the administrative (backoffice) HTTP endpoints.
+/// Mapeia os endpoints HTTP administrativos (backoffice).
 /// </summary>
 public static class BackofficeEndpoints
 {
     /// <summary>
-    /// Maps the backoffice endpoint group (e.g. GET /api/backoffice/projects).
+    /// Mapeia o grupo de endpoints do backoffice (ex.: GET /api/backoffice/projects).
     /// </summary>
-    /// <param name="endpoints">The endpoint route builder.</param>
+    /// <param name="endpoints">Construtor de rotas de endpoints.</param>
     public static void MapBackofficeEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        // Groups the administrative routes of the dashboard
+        // Agrupa as rotas administrativas do dashboard
         var group = endpoints.MapGroup("api/backoffice").WithTags("Backoffice");
 
-        // GET: List active projects in the administration dashboard
+        // GET: lista os projetos ativos no painel administrativo
         group.MapGet("/projects", async (BackofficeHandler handler) =>
         {
             var projects = await handler.GetActiveProjectsAsync();

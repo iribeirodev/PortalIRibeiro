@@ -5,12 +5,12 @@ using PortalIRibeiro.API.Infrastructure.Repositories.Interfaces;
 namespace PortalIRibeiro.API.Features.Iris;
 
 /// <summary>
-/// Orchestrates the Iris chat flow: generates the AI response through the
-/// <see cref="GeminiService"/> and persists the conversation in the database.
+/// Orquestra o chat da Íris: gera a resposta via <see cref="GeminiService"/>
+/// e salva a conversa no banco de dados.
 /// </summary>
-/// <param name="chatHistoryRepository">Repository used to persist chat interactions.</param>
-/// <param name="geminiService">Service used to generate the AI responses.</param>
-/// <param name="logger">Logger used to trace the interaction processing.</param>
+/// <param name="chatHistoryRepository">Repositório usado para salvar as interações do chat.</param>
+/// <param name="geminiService">Serviço usado para gerar as respostas da IA.</param>
+/// <param name="logger">Logger usado para rastrear o processamento.</param>
 public class IrisChatHandler(
     IChatHistoryRepository chatHistoryRepository,
     GeminiService geminiService,
@@ -18,18 +18,18 @@ public class IrisChatHandler(
 )
 {
     /// <summary>
-    /// Processes a single chat interaction, generating and persisting the AI answer.
+    /// Processa a interação do chat, gerando e salvando a resposta.
     /// </summary>
-    /// <param name="request">The chat request containing the session identifier and the user message.</param>
-    /// <returns>The generated answer together with the session identifier.</returns>
+    /// <param name="request">Requisição com o identificador da sessão e a mensagem do usuário.</param>
+    /// <returns>Resposta gerada, junto com o identificador da sessão.</returns>
     public async Task<ChatResponse> ProcessInteractionAsync(ChatRequest request)
     {
         logger.LogInformation("Starting Iris processing. Session: {SessionId}", request.SessionId);
 
-        // Orchestrates the Gemini service call to generate the AI response
+        // Chama o GeminiService para gerar a resposta da IA
         string aiGeneratedResponse = await geminiService.GenerateResponseAsync(request.Text);
 
-        // Encapsulates the audit infrastructure
+        // Persiste o histórico da conversa
         var logConversa = new ChatHistory
         {
             SessionId = request.SessionId != Guid.Empty ? request.SessionId : Guid.NewGuid(),

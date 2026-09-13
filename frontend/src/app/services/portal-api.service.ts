@@ -16,7 +16,7 @@ export class PortalApiService {
 
   /**
    * Busca os projetos ativos para a vitrine do portfólio.
-   * @returns Observable com a lista de projetos (vazia em caso de falha/resposta inválida).
+   * @returns Lista de projetos (vazia em caso de falha/resposta inválida).
    */
   getProjects(): Observable<Project[]> {
     return this.http.get<ProjectJson[]>(`${this.baseUrl}/projects`).pipe(
@@ -34,8 +34,8 @@ export class PortalApiService {
 
   /**
    * Envia uma mensagem ao chat da Íris e recebe a resposta gerada.
-   * @param sessionId Identificador da sessão de conversa.
-   * @param text Texto da pergunta do usuário.
+   * @param sessionId Identificador da sessão.
+   * @param text Pergunta do usuário.
    */
   sendChat(sessionId: string, text: string): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(
@@ -46,7 +46,7 @@ export class PortalApiService {
 }
 
 /**
- * Converte o payload bruto da API no modelo tipado de projeto do frontend.
+ * Converte o projeto retornado pela API no modelo tipado do frontend.
  * @param raw Projeto como retornado pelo backend (camelCase).
  */
 function toProject(raw: ProjectJson): Project {

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace PortalIRibeiro.API.Features.Contact;
 
 /// <summary>
-/// Represents a contact message submitted through the portal's contact form.
+/// Mensagem de contato enviada pelo formulário do portal.
 /// </summary>
 [Table("mensagens_contato")]
 public class ContactMessage

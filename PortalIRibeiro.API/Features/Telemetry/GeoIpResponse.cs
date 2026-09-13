@@ -1,27 +1,28 @@
 namespace PortalIRibeiro.API.Features.Telemetry;
 
 /// <summary>
-/// Response model of the ip-api.com GeoIP service used for location enrichment.
+/// Modelo de resposta do serviço GeoIP (ip-api.com), usado para enriquecer
+/// a localização das visitas.
 /// </summary>
 public record GeoIpResponse
 {
     /// <summary>
-    /// Service status (e.g. <c>success</c> or <c>fail</c>).
+    /// Status do serviço (ex.: <c>success</c> ou <c>fail</c>).
     /// </summary>
     public string Status { get; init; } = string.Empty;
 
     /// <summary>
-    /// Country name of the resolved IP address.
+    /// País do endereço IP resolvido.
     /// </summary>
     public string Country { get; init; } = string.Empty;
 
     /// <summary>
-    /// Region/state name of the resolved IP address.
+    /// Região/estado do endereço IP resolvido.
     /// </summary>
     public string RegionName { get; init; } = string.Empty;
 
     /// <summary>
-    /// City of the resolved IP address.
+    /// Cidade do endereço IP resolvido.
     /// </summary>
     public string City { get; init; } = string.Empty;
 }

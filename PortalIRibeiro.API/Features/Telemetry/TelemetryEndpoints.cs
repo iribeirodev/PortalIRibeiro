@@ -3,14 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace PortalIRibeiro.API.Features.Telemetry;
 
 /// <summary>
-/// Maps the telemetry HTTP endpoints.
+/// Mapeia os endpoints HTTP de telemetria.
 /// </summary>
 public static class TelemetryEndpoints
 {
     /// <summary>
-    /// Maps the telemetry endpoint group (e.g. POST /api/telemetry/visit).
+    /// Mapeia o grupo de endpoints de telemetria (ex.: POST /api/telemetry/visit).
     /// </summary>
-    /// <param name="app">The endpoint route builder.</param>
+    /// <param name="app">Construtor de rotas de endpoints.</param>
     public static void MapTelemetryEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/telemetry");

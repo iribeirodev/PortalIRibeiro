@@ -9,10 +9,9 @@ using PortalIRibeiro.API.Infrastructure.Serialization;
 namespace PortalIRibeiro.API.Features.Iris;
 
 /// <summary>
-/// Interacts with the Gemini API to generate Iris' answers. The curriculum context
-/// is loaded from Postgres (with an in-memory cache) and combined with the system
-/// instructions into the model payload. When the context cannot be loaded, a
-/// friendly message is returned instead of calling the API.
+/// Gera as respostas da Íris via API do Gemini. O currículo é carregado do
+/// Postgres (com cache em memória) e combinado com as instruções de sistema.
+/// Se o contexto não for carregado, retorna uma mensagem amigável.
 /// </summary>
 public class GeminiService(
     HttpClient httpClient,
@@ -40,10 +39,10 @@ public class GeminiService(
     private readonly string systemInstruction = LoadInstructions(logger);
 
     /// <summary>
-    /// Loads the Iris system instructions from the iris_instruction.md file.
+    /// Carrega as instruções da Íris do arquivo iris_instruction.md.
     /// </summary>
-    /// <param name="log">Logger used to trace the load result.</param>
-    /// <returns>The instructions content, or an inline fallback when the file is missing.</returns>
+    /// <param name="log">Logger usado para registrar o resultado da carga.</param>
+    /// <returns>Conteúdo das instruções, ou um texto padrão quando o arquivo não existe.</returns>
     private static string LoadInstructions(ILogger<GeminiService> log)
     {
         var contextPath = Path.Combine(AppContext.BaseDirectory,
@@ -63,12 +62,12 @@ public class GeminiService(
     }
 
     /// <summary>
-    /// Generates Iris' answer for the given user question.
+    /// Gera a resposta da Íris para a pergunta do usuário.
     /// </summary>
-    /// <param name="userQuestion">The user's question sent to Iris.</param>
+    /// <param name="userQuestion">Pergunta enviada pelo usuário.</param>
     /// <returns>
-    /// The generated answer, or the friendly message when the curriculum context
-    /// cannot be loaded from the database.
+    /// Resposta gerada, ou a mensagem amigável quando o currículo não
+    /// pode ser carregado do banco.
     /// </returns>
     public async Task<string> GenerateResponseAsync(string userQuestion)
     {
@@ -91,7 +90,7 @@ public class GeminiService(
 
         try
         {
-            // Strongly-typed payload for Native AOT
+            // Payload fortemente tipado para Native AOT
             var payload = new GeminiRequest
             {
                 SystemInstruction = new GeminiSystemInstruction
@@ -108,10 +107,10 @@ public class GeminiService(
                 ]
             };
 
-            // Serialization via Source Generator
+            // Serialização via Source Generator
             var jsonPayload = JsonSerializer.Serialize(payload, AppJsonContext.Default.GeminiRequest);
 
-            // Tries the primary model; on failure, falls back to the secondary model
+            // Tenta o modelo principal; em caso de falha, usa o secundário
             var primaryResult = await TryGenerateResponseAsync(geminiUrl, jsonPayload);
             if (!string.IsNullOrWhiteSpace(primaryResult))
             {
@@ -141,12 +140,12 @@ public class GeminiService(
     }
 
     /// <summary>
-    /// Builds the RAG context from the curriculum stored in Postgres, using an
-    /// in-memory cache (15 minutes TTL) to avoid hitting the database repeatedly.
+    /// Monta o contexto RAG a partir do currículo no Postgres, com cache
+    /// em memória (TTL de 15 minutos).
     /// </summary>
     /// <returns>
-    /// The curriculum context, or <see langword="null"/> when the parameter does
-    /// not exist. Throws when the database is unreachable.
+    /// O contexto do currículo, ou <see langword="null"/> quando o parâmetro
+    /// não existe. Lança erro quando o banco está inacessível.
     /// </returns>
     private async Task<string?> GetCurriculumContextAsync()
     {
@@ -168,13 +167,12 @@ public class GeminiService(
     }
 
     /// <summary>
-    /// Calls the Gemini API for the given model URL and payload, returning the
-    /// generated text. Non-successful responses and HTTP failures yield
-    /// <see langword="null"/> (already logged).
+    /// Chama a API do Gemini para a URL e payload informados, retornando o
+    /// texto gerado. Respostas de erro retornam <see langword="null"/>.
     /// </summary>
-    /// <param name="url">The full generateContent URL of the model.</param>
-    /// <param name="jsonPayload">The serialized request payload.</param>
-    /// <returns>The generated text, or <see langword="null"/> on failure.</returns>
+    /// <param name="url">URL completa da chamada generateContent do modelo.</param>
+    /// <param name="jsonPayload">Payload de requisição serializado.</param>
+    /// <returns>Texto gerado, ou <see langword="null"/> em caso de falha.</returns>
     private async Task<string?> TryGenerateResponseAsync(string url, string jsonPayload)
     {
         var urlWithKey = $"{url}?key={apiKey}";
@@ -191,7 +189,7 @@ public class GeminiService(
                 return null;
             }
 
-            // Deserialization via Source Generator
+            // Desserialização via Source Generator
             var jsonResponse = await httpResponse.Content.ReadAsStringAsync();
             var geminiResult = JsonSerializer.Deserialize(jsonResponse, AppJsonContext.Default.GeminiResponse);
             var responseText = geminiResult?.Candidates?[0].Content?.Parts?[0].Text;
@@ -206,10 +204,10 @@ public class GeminiService(
     }
 
     /// <summary>
-    /// Extracts the model name from a generateContent URL.
+    /// Extrai o nome do modelo de uma URL generateContent.
     /// </summary>
-    /// <param name="url">The model URL containing /models/[name]:generateContent.</param>
-    /// <returns>The model name, or the full URL when it cannot be parsed.</returns>
+    /// <param name="url">URL do modelo contendo /models/[nome]:generateContent.</param>
+    /// <returns>Nome do modelo, ou a URL completa quando não for possível extrair.</returns>
     private static string ExtractModelName(string url)
     {
         var marker = "/models/";
@@ -223,10 +221,10 @@ public class GeminiService(
 }
 
 // ==============================================================================
-// Request DTOs (Gemini API)
+// DTOs de Requisição (API Gemini)
 // ==============================================================================
 /// <summary>
-/// Payload sent to the Gemini generateContent API.
+/// Payload enviado à API generateContent do Gemini.
 /// </summary>
 public class GeminiRequest
 {
@@ -238,7 +236,7 @@ public class GeminiRequest
 }
 
 /// <summary>
-/// System-level instruction block of a Gemini request.
+/// Instruções de sistema de uma requisição Gemini.
 /// </summary>
 public class GeminiSystemInstruction
 {
@@ -247,7 +245,7 @@ public class GeminiSystemInstruction
 }
 
 /// <summary>
-/// A conversational turn sent to the Gemini API.
+/// Mensagem (turno de conversa) enviada à API Gemini.
 /// </summary>
 public class GeminiContent
 {
@@ -259,7 +257,7 @@ public class GeminiContent
 }
 
 /// <summary>
-/// A single text part of a Gemini message.
+/// Uma parte de texto de uma mensagem Gemini.
 /// </summary>
 public class GeminiPart
 {
@@ -268,10 +266,10 @@ public class GeminiPart
 }
 
 // ==============================================================================
-// Response DTOs (Gemini API)
+// DTOs de Resposta (API Gemini)
 // ==============================================================================
 /// <summary>
-/// Response received from the Gemini generateContent API.
+/// Resposta recebida da API generateContent do Gemini.
 /// </summary>
 public class GeminiResponse
 {
@@ -280,7 +278,7 @@ public class GeminiResponse
 }
 
 /// <summary>
-/// A candidate answer returned by the Gemini API.
+/// Resposta candidata retornada pela API Gemini.
 /// </summary>
 public class Candidate
 {
@@ -289,7 +287,7 @@ public class Candidate
 }
 
 /// <summary>
-/// Content node of a Gemini candidate.
+/// Conteúdo de um candidato Gemini.
 /// </summary>
 public class ContentNode
 {
@@ -298,7 +296,7 @@ public class ContentNode
 }
 
 /// <summary>
-/// A text part of a Gemini candidate's content.
+/// Parte de texto do conteúdo de um candidato Gemini.
 /// </summary>
 public class PartNode
 {

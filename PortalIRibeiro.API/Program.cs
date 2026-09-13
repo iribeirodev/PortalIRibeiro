@@ -14,7 +14,7 @@ using PortalIRibeiro.API.Infrastructure.Serialization;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-// Carrega as variáveis do .env no processo do SO (apenas em desenvolvimento)
+// Carrega o .env no processo (apenas em desenvolvimento)
 if (builder.Environment.IsDevelopment())
 {
     Env.TraversePath().Load();
@@ -23,9 +23,7 @@ if (builder.Environment.IsDevelopment())
 // Adiciona as variáveis do processo no IConfiguration do ASP.NET Core
 builder.Configuration.AddEnvironmentVariables();
 
-// A Koyeb termina o TLS na borda e reencaminha HTTP para o container em :8080.
-// Sem o X-Forwarded-Proto o UseHttpsRedirection geraria redirect para a porta
-// HTTPS inexistente. Confia nos headers encaminhados a partir de qualquer proxy.
+// A Koyeb termina o TLS na borda; confia nos headers X-Forwarded-* de qualquer proxy.
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -39,11 +37,11 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonContext.Default);
 });
 
-// Provedores padrão de Log
+// Log
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-// Cache Distribuído (Upstash Redis)
+// Cache distribuído (Upstash Redis)
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis") 
     ?? throw new InvalidOperationException("Connection string do Redis não encontrada.");
 
@@ -67,7 +65,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Banco de Dados Central (PostgreSQL)
+// Banco de dados central (PostgreSQL)
 if (string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("DefaultConnection")))
 {
     throw new InvalidOperationException("Connection string do PostgreSQL não encontrada.");
@@ -78,7 +76,7 @@ builder.Services.AddSingleton<NpgsqlConnectionFactory>();
 builder.Services.AddHttpClient();
 builder.Services.AddOpenApi();
 
-// Configura log de requisições
+// Log de requisições
 builder.Services.AddHttpLogging(logging =>
 {
     logging.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestMethod
@@ -86,7 +84,7 @@ builder.Services.AddHttpLogging(logging =>
                             | Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.ResponseStatusCode;
 });
 
-// Injeção de Dependência por fatias
+// Injeção de dependência por fatias
 builder.Services.AddScoped<BackofficeHandler>();
 builder.Services.AddScoped<IrisChatHandler>();
 builder.Services.AddHttpClient<GeminiService>();

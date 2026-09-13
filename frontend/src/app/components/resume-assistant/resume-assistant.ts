@@ -74,7 +74,7 @@ export class ResumeAssistant implements OnDestroy {
 
   /**
    * Envia a mensagem à API da Íris e incorpora a resposta na conversa.
-   * @param text Texto da pergunta enviada pelo usuário.
+   * @param text Pergunta enviada pelo usuário.
    */
   private async streamResponse(text: string): Promise<void> {
     this.streamSubscription = this.api.sendChat(this.sessionId, text).subscribe({
@@ -89,8 +89,8 @@ export class ResumeAssistant implements OnDestroy {
         }
       },
       error: (err) => {
-        // A API já impõe o limite diário e o fail-closed no backend; aqui só
-        // repassamos a mensagem do servidor quando ela estiver disponível.
+        // O backend impõe o limite diário (fail-closed); aqui só repassamos a
+        // mensagem de erro do servidor.
         const serverMessage = (err as { error?: { message?: string } } | null)?.error?.message;
         this.appendMessage(
           serverMessage ?? 'Erro de conexão ao tentar falar com o servidor da Íris.',
@@ -108,7 +108,7 @@ export class ResumeAssistant implements OnDestroy {
 
   /**
    * Acrescenta uma mensagem ao histórico visível do chat.
-   * @param text Conteúdo textual da mensagem.
+   * @param text Conteúdo da mensagem.
    * @param isUser Define se a mensagem é do usuário (`true`) ou da Íris (`false`).
    */
   private appendMessage(text: string, isUser: boolean): void {

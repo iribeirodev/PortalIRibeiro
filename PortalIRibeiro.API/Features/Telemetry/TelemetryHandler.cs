@@ -6,34 +6,33 @@ using PortalIRibeiro.API.Infrastructure.Serialization;
 namespace PortalIRibeiro.API.Features.Telemetry;
 
 /// <summary>
-/// Processes visit telemetry: captures the client IP, deduplicates repeated
-/// visits through a short-lived Postgres cache, enriches location data via
-/// the ip-api.com GeoIP service and persists the record.
+/// Processa a telemetria de visitas: captura o IP do cliente, deduplica
+/// visitas repetidas via cache no Postgres, enriquece a localização (GeoIP)
+/// e persiste o registro.
 /// </summary>
 public class TelemetryHandler(
     IVisitRepository repository,
     HttpClient httpClient)
 {
     /// <summary>
-    /// Processes the registration of a new visit from the current HTTP request,
-    /// applying deduplication, GeoIP enrichment and persistence.
+    /// Registra uma nova visita a partir da requisição HTTP atual, aplicando
+    /// deduplicação, enriquecimento GeoIP e persistência.
     /// </summary>
-    /// <param name="httpContext">The current HTTP context (used for IP, referer and user-agent).</param>
-    /// <param name="request">The payload containing the visited page.</param>
-    /// <param name="cancellationToken">A token used to cancel the asynchronous operation.</param>
+    /// <param name="httpContext">Contexto HTTP atual (usado para IP, referer e user-agent).</param>
+    /// <param name="request">Payload com a página visitada.</param>
+    /// <param name="cancellationToken">Token para cancelar a operação assíncrona.</param>
     public async Task ProcessVisitAsync(
         HttpContext httpContext,
         RegisterVisitRequest request,
         CancellationToken cancellationToken = default)
     {
-        // Tries to capture the real IP when the app is behind a Reverse Proxy (e.g. Vercel, Nginx, Cloudflare)
+        // Captura o IP real quando há um proxy reverso (Vercel, Nginx, Cloudflare)
         string ip = ClientIpResolver.Resolve(httpContext);
 
-        // Normalizes the page before using it both in the deduplication key and in the persisted record
+        // Normaliza a página para usar tanto na deduplicação quanto no registro
         string page = string.IsNullOrWhiteSpace(request.Page) ? "/" : request.Page;
 
-        // Avoids duplicate counting and unnecessary GeoIP API calls when the same IP
-        // reloads the same page within less than 15 minutes
+        // Evita contar a mesma visita (mesmo IP + página) dentro de 15 minutos
         if (!await repository.TryClaimCacheAsync(ip, page, TimeSpan.FromMinutes(15), cancellationToken))
             return;
 
@@ -43,13 +42,13 @@ public class TelemetryHandler(
 
         try
         {
-            // In production (Public IP): queries the visitor's exact IP on the external API.
-            // In development (Local/Loopback IP): queries without an IP in the URL to geolocate the local outbound IP.
+            // Em produção consulta o IP do visitante; em desenvolvimento (loopback)
+            // consulta sem IP para geo-localizar a saída local.
             var url = ip != "127.0.0.1"
                 ? $"http://ip-api.com/json/{ip}?fields=status,country,regionName,city"
                 : "http://ip-api.com/json/?fields=status,country,regionName,city";
 
-            // Optimized deserialization via System.Text.Json (Source Generators)
+            // Desserialização otimizada via System.Text.Json (Source Generators)
             var geo = await httpClient.GetFromJsonAsync(
                 url,
                 AppJsonContext.Default.GeoIpResponse,
@@ -64,10 +63,10 @@ public class TelemetryHandler(
         }
         catch
         {
-            // Silences external API exceptions to avoid breaking execution or impacting the final client
+            // Ignora erros da API externa para não quebrar a execução
         }
 
-        // Identifies the access type (Human vs Bot/Crawler/Scraper)
+        // Identifica o tipo de acesso (humano vs bot/crawler)
         var referer = httpContext.Request.Headers.Referer.FirstOrDefault();
         var userAgent = httpContext.Request.Headers.UserAgent.ToString();
         var (visitType, botName) = VisitClassifier.Classify(userAgent);
