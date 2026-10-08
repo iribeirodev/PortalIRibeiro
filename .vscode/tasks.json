@@ -2,58 +2,38 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build-api",
-            "command": "dotnet",
+            "label": "run-api",
             "type": "process",
+            "command": "dotnet",
             "args": [
-                "build",
-                "${workspaceFolder}/PortalIRibeiro.API/PortalIRibeiro.API.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "run",
+                "--project",
+                "${workspaceFolder}/PortalIRibeiro.API/PortalIRibeiro.API.csproj"
             ],
+            "isBackground": true,
             "problemMatcher": "$msCompile"
         },
         {
             "label": "build-frontend",
             "type": "npm",
             "script": "build",
-            "path": "${workspaceFolder}/frontend",
+            "path": "frontend",
             "problemMatcher": [
                 "$tsc"
             ]
         },
         {
             "label": "serve-frontend",
-            "command": "npm",
-            "type": "process",
-            "args": [
-                "run",
-                "start",
-                "--",
-                "--open"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}/frontend"
-            },
-            "isBackground": true,
-            "problemMatcher": {
-                "owner": "npm",
-                "background": {
-                    "activeOnStart": true,
-                    "beginsPattern": ".*",
-                    "endsPattern": "Application bundle generation complete.*|Watch mode enabled.*"
-                },
-                "pattern": {
-                    "regexp": "(error|warn)\\s+(.+)",
-                    "file": 2,
-                    "line": 3
-                }
-            }
+            "type": "npm",
+            "script": "start",
+            "path": "frontend",
+            "isBackground": false,
+            "problemMatcher": []
         },
         {
             "label": "run-ecosystem",
             "dependsOn": [
-                "build-api",
+                "run-api",
                 "serve-frontend"
             ],
             "dependsOrder": "parallel",

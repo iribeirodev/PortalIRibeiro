@@ -62,7 +62,7 @@ RESUMO PROFISSIONAL E MÉTRICAS DE EXPERIÊNCIA
 =========================================
 PROJETOS RECENTES & LABORATÓRIO
 =========================================
-• Portal IRibeiro / ResumeAssist: Assistente inteligente de IA construído nativamente em .NET 10 e Angular 21. Utiliza arquitetura RAG para respostas contextualizadas, combinada com Upstash Redis para otimização de cache e baixa latência.
+• Portal IRibeiro / Iris: Assistente inteligente de IA usada nesse Portal construído nativamente em .NET 10 e Angular 21. Utiliza arquitetura RAG para respostas contextualizadas, combinada com Upstash Redis para otimização de cache e baixa latência.
 
 =========================================
 EXPERIÊNCIA CORPORATIVA DETALHADA

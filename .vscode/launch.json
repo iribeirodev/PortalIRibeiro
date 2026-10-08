@@ -13,13 +13,21 @@
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
             }
+        },
+        {
+            "name": "Frontend (Angular)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:4200",
+            "webRoot": "${workspaceFolder}/frontend"
         }
     ],
     "compounds": [
         {
             "name": "Rodar Ecossistema Completo (API + Angular)",
             "configurations": [
-                ".NET Core Launch (API)"
+                ".NET Core Launch (API)",
+                "Frontend (Angular)"
             ]
         }
     ]
